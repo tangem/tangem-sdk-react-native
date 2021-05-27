@@ -10,10 +10,16 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "10.0" }
+  s.platforms    = { :ios => "11.0" }
   s.source       = { :git => "https://github.com/tangem/tangem-sdk-react-native-new.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.ios.deployment_target = '11.0'
+
+  s.requires_arc = true
+  s.platform = :ios, '11.0'
+  s.ios.deployment_target = '11.0'
 
   s.dependency "React-Core"
+  s.dependency "TangemSdk", "3.0.2"
 end
