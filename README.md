@@ -10,12 +10,22 @@ The Tangem card is a self-custodial hardware wallet for blockchain assets. The m
 - [Usage](#usage)
   - [Scan card](#scan-card)
   - [Sign](#sign)
-    - [Wallet](#wallet)
-      - [Create Wallet](#create-wallet)
-      - [Purge Wallet](#purge-wallet)
-    - [PIN codes](#pin-codes)
-    - [NFC Status](#nfc-status)
-- [Troubleshooting](#troubleshooting)
+  - [Wallet](#wallet)
+    - [Create Wallet](#create-wallet)
+    - [Purge Wallet](#purge-wallet)
+  - [Issuer data](#issuer-data)
+    - [Write issuer data](#write-issuer-data)
+    - [Write issuer extra data](#write-issuer-extra-data)
+    - [Read issuer data](#read-issuer-data)
+    - [Read issuer extra data](#read-issuer-extra-data)
+  - [User data](#user-data)
+    - [Write user data](#write-user-data)
+    - [Write user protected data](#write-user-protected-data)
+    - [Read user data](#read-user-data)
+  - [PIN codes](#pin-codes)
+    - [Card attestation](#card-attestation)
+      - [Card verification](#card-verification)
+  - [NFC Status](#nfc-status)
 
 ## Getting Started
 
@@ -467,6 +477,8 @@ TangemSdk.writeUserData(userData, userCounter, cardId, initialMessage)
   });
 ```
 
+##### Write user protected data
+
 **Arguments:**
 
 | Parameter | Description |
@@ -544,7 +556,7 @@ TangemSdk.changePin1(pin, cardId, initialMessage)
   .catch((error) => {
     // ...
   });
-TangemSdk.changePin2(pin, cardId, initialMessage, callback)
+TangemSdk.changePin2(pin, cardId, initialMessage)
   .then((response) => {
     // ...
   })
@@ -552,6 +564,27 @@ TangemSdk.changePin2(pin, cardId, initialMessage, callback)
     // ...
   });
 ```
+### Card attestation
+#### Card verification
+This command is a part of Tangem card attestation. In manufacturing, every new Tangem card internally generates a Card Key pair Card Public Key / Card Private Key. The private key is permanently stored in the card memory and is not accessible to external applications via the NFC interface. At the same time, Tangem publishes the list of CID and corresponding Card Public Key values in its card attestation service and/or hands over this list to the Card Issuer.
+
+**Arguments:**
+
+| Parameter | Description |
+| ------------ | ------------ |
+| online | Flag that allows disable online verification. Do not use for developer cards
+| cardId | *(Optional)* If cardId is passed, the sign command will be performed only if the card  |
+| initialMessage | *(Optional)* A custom description that shows at the beginning of the NFC session. If nil, default message will be used |
+```js
+TangemSdk.verify(pin, cardId, initialMessage)
+  .then((response) => {
+    // ...
+  })
+  .catch((error) => {
+    // ...
+  });;
+```
+
 
 
 #### NFC Status
