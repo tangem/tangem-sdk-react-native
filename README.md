@@ -23,8 +23,8 @@ The Tangem card is a self-custodial hardware wallet for blockchain assets. The m
     - [Write user protected data](#write-user-protected-data)
     - [Read user data](#read-user-data)
   - [PIN codes](#pin-codes)
-    - [Card attestation](#card-attestation)
-      - [Card verification](#card-verification)
+  - [Card attestation](#card-attestation)
+    - [Card verification](#card-verification)
   - [NFC Status](#nfc-status)
 
 ## Getting Started
