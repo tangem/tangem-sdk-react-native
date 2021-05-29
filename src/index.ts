@@ -1,3 +1,5 @@
+'use strict';
+
 import { Platform, NativeModules, DeviceEventEmitter } from 'react-native';
 
 import type { TangemSdk } from './types';

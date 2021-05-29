@@ -20,7 +20,7 @@ import com.tangem.*
 import com.tangem.commands.common.ResponseConverter
 import com.tangem.common.CardValuesDbStorage
 import com.tangem.common.CompletionResult
-import com.tangem.common.extensions.CardType
+// import com.tangem.common.extensions.CardType
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
@@ -61,6 +61,8 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         nfcManager = NfcManager().apply {
             setCurrentActivity(activity)
         }
+      // TODO(uncomment)
+      /*
         cardManagerDelegate = DefaultSessionViewDelegate(nfcManager.reader).apply { this.activity = activity }
         val config = Config(cardFilter = CardFilter(EnumSet.of(CardType.Release)))
 
@@ -70,6 +72,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         val keyStorage = TerminalKeysStorage(activity.application)
 
         sdk = TangemSdk(nfcManager.reader, cardManagerDelegate, config, valueStorage, keyStorage)
+       */
     }
 
     override fun onHostResume() {
@@ -80,6 +83,8 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
                 return
             }
             // if activity destroyed initialize again
+            // TODO(uncomment)
+            /*
             if (activity.isDestroyed() || activity.isFinishing()) {
                 initialize()
             } else {
@@ -87,6 +92,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
                     nfcManager.onStart()
                 }
             }
+           */
         }
     }
 
@@ -149,7 +155,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         }
     }
 
-
     @ReactMethod
     fun scanCard(param: ReadableMap, promise: Promise) {
         try {
@@ -161,17 +166,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     @ReactMethod
-    fun sign(param: ReadableMap, promise: Promise) {
-        try {
-            // TODO
-            // sdk.sign(param.hashes, param.walletPublicKey, param.cardId, param.initialMessage) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-
-    @ReactMethod
     fun verify(param: ReadableMap, promise: Promise) {
         try {
             // TODO
@@ -180,17 +174,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             handleException(ex, promise)
         }
     }
-
-    @ReactMethod
-    fun verify(param: ReadableMap, promise: Promise) {
-        try {
-            // TODO
-            // sdk.verify(online, cardId, initialMessage) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
 
     @ReactMethod
     fun purgeWallet(param: ReadableMap, promise: Promise) {
@@ -205,7 +188,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun sign(param: ReadableMap, promise: Promise) {
         try {
-            val hexHashes = hashes.toArrayList().map { it.toString().hexToBytes() }.toTypedArray()
+            // val hexHashes = hashes.toArrayList().map { it.toString().hexToBytes() }.toTypedArray()
             // TODO
             // sdk.sign(hexHashes, walletPublicKey, cardId, initialMessage) { handleResult(it, promise) }
         } catch (ex: Exception) {
@@ -298,7 +281,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         try {
           // TODO
           // sdk.changePin2(if (pinCode.isBlank()) null else pin.calculateSha256(), cardId, initialMessage) { handleResult(it, promise) }
-          catch (ex: Exception) {
+        } catch (ex: Exception) {
             handleException(ex, promise)
         }
     }
@@ -460,12 +443,16 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             is CompletionResult.Failure<*> -> {
                 val error = completionResult.error
                 val errorMessage = if (error is TangemSdkError) {
+                  // TODO(Uncomment)
+                    /*
                     wActivity.get()?.getString(error.localizedDescription()) ?: error.customMessage
+                     */
                 } else {
                     error.customMessage
                 }
                 handler.post {
-                    promise.reject("${error.code}", errorMessage, null)
+                  // TODO(Uncomment)
+                  //  promise.reject("${error.code}", errorMessage, null)
                 }
             }
         }
