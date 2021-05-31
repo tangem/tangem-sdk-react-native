@@ -5,42 +5,36 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-
+import android.nfc.NfcAdapter
 import android.os.Handler
 import android.os.Looper
-import android.nfc.NfcAdapter
-
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-
 import com.google.gson.JsonSyntaxException
 import com.squareup.sqldelight.android.AndroidSqliteDriver
-
 import com.tangem.*
-import com.tangem.commands.common.ResponseConverter
+import com.tangem.commands.common.card.CardType
+import com.tangem.commands.common.jsonConverter.MoshiJsonConverter
 import com.tangem.common.CardValuesDbStorage
 import com.tangem.common.CompletionResult
-// import com.tangem.common.extensions.CardType
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.extensions.hexToBytes
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.TerminalKeysStorage
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
 import com.tangem.tangem_sdk_new.nfc.NfcManager
-
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-
 import java.lang.ref.WeakReference
-import java.util.EnumSet
+import java.util.*
 
 class TangemSdkReactNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
+
     private lateinit var nfcManager: NfcManager
     private lateinit var cardManagerDelegate: DefaultSessionViewDelegate
     private lateinit var sdk: TangemSdk
     private val handler = Handler(Looper.getMainLooper())
-    private val converter = ResponseConverter()
+    private val converter = MoshiJsonConverter.INSTANCE
 
     private var sessionStarted = false
 
@@ -51,56 +45,40 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     override fun initialize() {
         super.initialize()
 
-        val activity = currentActivity
-        wActivity = WeakReference(currentActivity)
+        super.initialize()
+        val activity = currentActivity ?: return
 
-        activity ?: let {
-            return
-        }
+        wActivity = WeakReference(activity)
 
-        nfcManager = NfcManager().apply {
-            setCurrentActivity(activity)
-        }
-      // TODO(uncomment)
-      /*
-        cardManagerDelegate = DefaultSessionViewDelegate(nfcManager.reader).apply { this.activity = activity }
+        nfcManager = NfcManager().apply { setCurrentActivity(activity) }
+        cardManagerDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader)
+                .apply { this.activity = activity }
         val config = Config(cardFilter = CardFilter(EnumSet.of(CardType.Release)))
-
-        val valueStorage = CardValuesDbStorage(AndroidSqliteDriver(Database.Schema, activity.application,
-                "rn_cards.db"))
-
+        val valueStorage = CardValuesDbStorage(AndroidSqliteDriver(Database.Schema, activity.application, "rn_cards.db"))
         val keyStorage = TerminalKeysStorage(activity.application)
 
         sdk = TangemSdk(nfcManager.reader, cardManagerDelegate, config, valueStorage, keyStorage)
-       */
     }
 
     override fun onHostResume() {
-        if (::nfcManager.isInitialized) {
-            // check if activity is destroyed
-            val activity = wActivity.get()
-            activity ?: let {
-                return
+        if (!::nfcManager.isInitialized) return
+
+        // check if activity is destroyed
+        val activity = wActivity.get() ?: return
+
+        // if activity destroyed initialize again
+        if (activity.isDestroyed() || activity.isFinishing()) {
+            initialize()
+        } else {
+            if (sessionStarted) {
+                nfcManager.onStart()
             }
-            // if activity destroyed initialize again
-            // TODO(uncomment)
-            /*
-            if (activity.isDestroyed() || activity.isFinishing()) {
-                initialize()
-            } else {
-                if(sessionStarted){
-                    nfcManager.onStart()
-                }
-            }
-           */
         }
     }
 
     override fun onHostPause() {
-        if (::nfcManager.isInitialized) {
-            if(sessionStarted){
-                nfcManager.onStop()
-            }
+        if (::nfcManager.isInitialized && sessionStarted) {
+            nfcManager.onStop()
         }
     }
 
@@ -112,19 +90,19 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
 
 
     @ReactMethod
-    fun startSession(promise: Promise){
+    fun startSession(promise: Promise) {
         try {
-            if(!sessionStarted){
-                if(::nfcManager.isInitialized){
+            if (!sessionStarted) {
+                if (::nfcManager.isInitialized) {
                     nfcManager.onStart()
 
                     sessionStarted = true
 
                     promise.resolve(null)
-                }else{
+                } else {
                     promise.reject("NOT_INITIALIZED", "nfcManager is not initialized", null)
                 }
-            }else{
+            } else {
                 // session already started
                 promise.resolve(null)
             }
@@ -134,19 +112,19 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     @ReactMethod
-    fun stopSession(promise: Promise){
+    fun stopSession(promise: Promise) {
         try {
             if (sessionStarted) {
-                if(::nfcManager.isInitialized) {
+                if (::nfcManager.isInitialized) {
                     nfcManager.onStop()
 
                     sessionStarted = false
 
                     promise.resolve(null)
-                }else{
+                } else {
                     promise.reject("NOT_INITIALIZED", "nfcManager is not initialized", null)
                 }
-            }else{
+            } else {
                 // session already stopped
                 promise.resolve(null)
             }
@@ -158,8 +136,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun scanCard(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.scanCard(param.hashes, param.walletPublicKey, param.cardId, param.initialMessage) { handleResult(it, promise) }
+            sdk.scanCard(param.extractOptional("initialMessage")) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -168,8 +145,11 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun verify(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.verify(online, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.verify(
+                    param.extractOptional("online") ?: false,
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -178,8 +158,11 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun purgeWallet(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.purgeWallet(walletPublicKey, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.purgeWallet(
+                    param.extract("walletIndex"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -188,9 +171,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun sign(param: ReadableMap, promise: Promise) {
         try {
-            // val hexHashes = hashes.toArrayList().map { it.toString().hexToBytes() }.toTypedArray()
-            // TODO
-            // sdk.sign(hexHashes, walletPublicKey, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.sign(
+                    param.extract("hashes") as Array<ByteArray>,
+                    param.extract("walletPublicKey"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -199,8 +185,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun readIssuerData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.readIssuerData(cardId, initialMessage) { handleResult(it, promise) }
+            sdk.readIssuerData(
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -209,8 +197,13 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun writeIssuerData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.writeIssuerData(issuerData, issuerDataSignature, issuerDataCounter, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.writeIssuerData(
+                    param.extractOptional("cardId"),
+                    param.extract("issuerData"),
+                    param.extract("issuerDataSignature"),
+                    param.extractOptional("issuerDataCounter"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -219,8 +212,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun readIssuerExtraData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.readIssuerExtraData(cardId, initialMessage) { handleResult(it, promise) }
+            sdk.readIssuerExtraData(
+                    param.extractOptional("issuerDataCounter"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -229,8 +224,14 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun writeIssuerExtraData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // writeIssuerExtraData(issuerData, startingSignature, finalizingSignature, issuerDataCounter, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.writeIssuerExtraData(
+                    param.extractOptional("cardId"),
+                    param.extract("issuerData"),
+                    param.extract("startingSignature"),
+                    param.extract("finalizingSignature"),
+                    param.extractOptional("issuerDataCounter"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -239,8 +240,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun readUserData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.readUserData(cardId, initialMessage) { handleResult(it, promise) }
+            sdk.readUserData(
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -249,8 +252,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun writeUserData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.writeUserData(userData, userCounter, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.writeUserData(
+                    param.extractOptional("cardId"),
+                    param.extract("userData"),
+                    param.extractOptional("userCounter"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -259,8 +266,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun writeUserProtectedData(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.writeUserProtectedData(userProtectedData, userProtectedCounter, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.writeUserProtectedData(
+                    param.extractOptional("cardId"),
+                    param.extract("userProtectedData"),
+                    param.extractOptional("userProtectedCounter"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -269,8 +280,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun changePin1(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.changePin1(if (pinCode.isBlank()) null else pin.calculateSha256(), cardId, initialMessage) { handleResult(it, promise) }
+            val pin = param.getString("pin");
+            sdk.changePin1(
+                    param.extractOptional("cardId"),
+                    if (pin.isNullOrBlank()) null else pin.calculateSha256(),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -279,8 +294,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun changePin2(param: ReadableMap, promise: Promise) {
         try {
-          // TODO
-          // sdk.changePin2(if (pinCode.isBlank()) null else pin.calculateSha256(), cardId, initialMessage) { handleResult(it, promise) }
+            val pin = param.getString("pin");
+            sdk.changePin2(
+                    param.extractOptional("cardId"),
+                    if (pin.isNullOrBlank()) null else pin.calculateSha256(),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -289,8 +308,12 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun readFiles(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.readFiles(readPrivateFiles, indices, cardId, initialMessage, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.readFiles(
+                    param.extractOptional("readPrivateFiles") ?: false,
+                    param.extractOptional("indices"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -299,8 +322,11 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun writeFiles(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.writeFiles(, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.writeFiles(
+                    param.extract("files"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -309,8 +335,11 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun deleteFiles(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.deleteFiles(indicesToDelete, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.deleteFiles(
+                    param.extractOptional("indices"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -319,8 +348,11 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     @ReactMethod
     fun changeFilesSettings(param: ReadableMap, promise: Promise) {
         try {
-            // TODO
-            // sdk.changeFilesSettings(changes, cardId, initialMessage) { handleResult(it, promise) }
+            sdk.changeFilesSettings(
+                    param.extract("changes"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -375,6 +407,32 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
                 }
             }
 
+    private fun handleResult(completionResult: CompletionResult<*>, promise: Promise) {
+        when (completionResult) {
+            is CompletionResult.Success<*> -> {
+                handler.post { promise.resolve(normalizeResponse(completionResult.data)) }
+            }
+            is CompletionResult.Failure<*> -> {
+                val error = completionResult.error
+                val errorMessage = if (error is TangemSdkError) {
+                    val activity = wActivity.get()
+                    if (activity == null) error.customMessage else error.localizedDescription(activity)
+                } else {
+                    error.customMessage
+                }
+                handler.post {
+                    // TODO(Uncomment)
+                    //  promise.reject("${error.code}", errorMessage, null)
+                }
+            }
+        }
+    }
+
+    private fun normalizeResponse(resp: Any?): WritableMap {
+        val jsonString = converter.toJson(resp)
+        val jsonObject = JSONObject(jsonString)
+        return toWritableMap(jsonObject)
+    }
 
     @Throws(JSONException::class)
     fun toWritableMap(jsonObject: JSONObject): WritableMap {
@@ -427,37 +485,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         return writableArray
     }
 
-
-    private fun normalizeResponse(resp: Any?): WritableMap {
-        val jsonString = converter.gson.toJson(resp)
-        val jsonObject = JSONObject(jsonString)
-        return toWritableMap(jsonObject)
-    }
-
-
-    private fun handleResult(completionResult: CompletionResult<*>, promise: Promise) {
-        when (completionResult) {
-            is CompletionResult.Success<*> -> {
-                handler.post { promise.resolve(normalizeResponse(completionResult.data)) }
-            }
-            is CompletionResult.Failure<*> -> {
-                val error = completionResult.error
-                val errorMessage = if (error is TangemSdkError) {
-                  // TODO(Uncomment)
-                    /*
-                    wActivity.get()?.getString(error.localizedDescription()) ?: error.customMessage
-                     */
-                } else {
-                    error.customMessage
-                }
-                handler.post {
-                  // TODO(Uncomment)
-                  //  promise.reject("${error.code}", errorMessage, null)
-                }
-            }
-        }
-    }
-
     private fun handleException(ex: Exception, promise: Promise) {
         handler.post {
             val code = 9999
@@ -477,4 +504,18 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         lateinit var wActivity: WeakReference<Activity?>
     }
 
+    @Throws(Exception::class)
+    private inline fun <reified T> ReadableMap.extract(name: String): T {
+        return this.extractOptional(name) ?: throw NoSuchFieldException(name)
+    }
+
+    private inline fun <reified T> ReadableMap.extractOptional(name: String): T? {
+        val argument = this.getString(name) ?: return null
+
+        return if (argument.contains("{") || argument.contains("[")) {
+            MoshiJsonConverter.INSTANCE.fromJson(argument)
+        } else {
+            argument as? T
+        }
+    }
 }

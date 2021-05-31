@@ -90,7 +90,7 @@ Create the file `android/src/main/res/xml/nfc_tech_filter.xml` and add the follo
    <uses-permission android:name="android.permission.NFC" />
 
    <uses-sdk
-           android:minSdkVersion="16"
+           android:minSdkVersion="21"
            android:targetSdkVersion="22" />
 
    <application
