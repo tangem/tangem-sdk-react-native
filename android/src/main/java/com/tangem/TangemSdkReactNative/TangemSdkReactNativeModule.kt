@@ -512,6 +512,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     private inline fun <reified T> ReadableMap.extractOptional(name: String): T? {
         val argument = this.getString(name) ?: return null
 
+        if (T::class.java == ByteArray::class.java) {
+            return argument.hexToBytes() as T
+        }
+
         return if (argument.contains("{") || argument.contains("[")) {
             MoshiJsonConverter.INSTANCE.fromJson(argument)
         } else {
