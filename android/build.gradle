@@ -16,6 +16,8 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
 
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['TangemSdkReactNativeNew_' + name]
@@ -132,11 +134,12 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  implementation 'com.google.code.gson:gson:2.8.6'
+  implementation 'com.github.tangem.tangem-sdk-android:tangem-sdk-android:3.2.2'
+  implementation 'com.github.tangem.tangem-sdk-android:tangem-sdk-core:3.2.2'
+
   implementation "com.squareup.sqldelight:android-driver:1.4.0"
-  implementation 'com.github.Tangem.tangem-sdk-android:tangem-sdk-core:3.0.6'
-  implementation 'com.github.Tangem.tangem-sdk-android:tangem-sdk-android:3.0.6'
 
-
-
+  implementation 'com.squareup.moshi:moshi:1.12.0'
+  implementation "com.squareup.moshi:moshi-kotlin:1.12.0"
+  kapt("com.squareup.moshi:moshi-kotlin-codegen:1.12.0")
 }
