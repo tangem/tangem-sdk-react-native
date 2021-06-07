@@ -59,6 +59,7 @@ repositories {
   mavenCentral()
   jcenter()
   google()
+  maven {url "https://nexus.tangem-tech.com/repository/maven-releases/"}
   maven { url 'https://jitpack.io' }
 
   def found = false
@@ -134,8 +135,8 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  implementation 'com.github.tangem.tangem-sdk-android:tangem-sdk-android:3.2.2'
-  implementation 'com.github.tangem.tangem-sdk-android:tangem-sdk-core:3.2.2'
+  implementation 'com.tangem:core:develop-37'
+  implementation 'com.tangem:sdk:develop-37'
 
   implementation "com.squareup.sqldelight:android-driver:1.4.0"
 
