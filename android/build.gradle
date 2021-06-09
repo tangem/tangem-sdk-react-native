@@ -135,8 +135,8 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  implementation 'com.tangem:core:develop-37'
-  implementation 'com.tangem:sdk:develop-37'
+  implementation 'com.tangem.tangem-sdk-kotlin:core:develop-40'
+  implementation 'com.tangem.tangem-sdk-kotlin:android:develop-40'
 
   implementation "com.squareup.sqldelight:android-driver:1.4.0"
 

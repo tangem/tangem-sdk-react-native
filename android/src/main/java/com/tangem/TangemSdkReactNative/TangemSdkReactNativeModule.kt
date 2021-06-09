@@ -38,7 +38,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     private lateinit var sdk: TangemSdk
     private val handler = Handler(Looper.getMainLooper())
 
-    private var sessionStarted = false
+    private var nfcManagerStarted = false
 
     override fun getName(): String {
         return "RNTangemSdk"
@@ -47,7 +47,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     override fun initialize() {
         super.initialize()
 
-        super.initialize()
         val activity = currentActivity ?: return
 
         wActivity = WeakReference(activity)
@@ -60,78 +59,31 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         val keyStorage = TerminalKeysStorage(activity.application)
 
         sdk = TangemSdk(nfcManager.reader, cardManagerDelegate, config, valueStorage, keyStorage)
+        nfcManager.onStart()
+        nfcManagerStarted = true
     }
 
     override fun onHostResume() {
         if (!::nfcManager.isInitialized) return
-
-        // check if activity is destroyed
         val activity = wActivity.get() ?: return
 
-        // if activity destroyed initialize again
         if (activity.isDestroyed() || activity.isFinishing()) {
             initialize()
-        } else {
-            if (sessionStarted) {
-                nfcManager.onStart()
-            }
         }
+        if (!nfcManagerStarted) nfcManager.onStart()
     }
 
     override fun onHostPause() {
-        if (::nfcManager.isInitialized && sessionStarted) {
+        if (::nfcManager.isInitialized) {
             nfcManager.onStop()
+            nfcManagerStarted = false
         }
     }
 
     override fun onHostDestroy() {
         if (::nfcManager.isInitialized) {
             nfcManager.onDestroy()
-        }
-    }
-
-
-    @ReactMethod
-    fun startSession(promise: Promise) {
-        try {
-            if (!sessionStarted) {
-                if (::nfcManager.isInitialized) {
-                    nfcManager.onStart()
-
-                    sessionStarted = true
-
-                    promise.resolve(null)
-                } else {
-                    promise.reject("NOT_INITIALIZED", "nfcManager is not initialized", null)
-                }
-            } else {
-                // session already started
-                promise.resolve(null)
-            }
-        } catch (ex: Exception) {
-            promise.reject(ex)
-        }
-    }
-
-    @ReactMethod
-    fun stopSession(promise: Promise) {
-        try {
-            if (sessionStarted) {
-                if (::nfcManager.isInitialized) {
-                    nfcManager.onStop()
-
-                    sessionStarted = false
-
-                    promise.resolve(null)
-                } else {
-                    promise.reject("NOT_INITIALIZED", "nfcManager is not initialized", null)
-                }
-            } else {
-                // session already stopped
-                promise.resolve(null)
-            }
-        } catch (ex: Exception) {
-            promise.reject(ex)
+            nfcManagerStarted = false
         }
     }
 
@@ -425,8 +377,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
                     error.customMessage
                 }
                 handler.post {
-                    // TODO(Uncomment)
-                    //  promise.reject("${error.code}", errorMessage, null)
+                    promise.reject("${error.code}", errorMessage, null)
                 }
             }
         }
@@ -520,7 +471,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             argument as T
         } else {
             val json = converter.toJson(argument)
-            converter.fromJson<T>(json) !!
+            converter.fromJson<T>(json)!!
         }
     }
 
