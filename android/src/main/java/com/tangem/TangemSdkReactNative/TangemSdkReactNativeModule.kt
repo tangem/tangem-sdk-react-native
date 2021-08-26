@@ -10,21 +10,21 @@ import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
-import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.tangem.*
-import com.tangem.commands.common.card.CardType
-import com.tangem.commands.common.jsonConverter.MoshiJsonConverter
-import com.tangem.commands.file.FileData
-import com.tangem.commands.file.FileSettingsChange
-import com.tangem.common.CardValuesDbStorage
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.Config
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.files.DataToWrite
+import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
-import com.tangem.tangem_sdk_new.TerminalKeysStorage
+import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
 import com.tangem.tangem_sdk_new.nfc.NfcManager
+import com.tangem.tangem_sdk_new.storage.create
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -51,14 +51,17 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
 
         wActivity = WeakReference(activity)
 
-        nfcManager = NfcManager().apply { setCurrentActivity(activity) }
-        cardManagerDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader)
-                .apply { this.activity = activity }
-        val config = Config(cardFilter = CardFilter(EnumSet.of(CardType.Release)))
-        val valueStorage = CardValuesDbStorage(AndroidSqliteDriver(Database.Schema, activity.application, "rn_cards.db"))
-        val keyStorage = TerminalKeysStorage(activity.application)
+        Log.addLogger(TangemSdk.createLogger())
 
-        sdk = TangemSdk(nfcManager.reader, cardManagerDelegate, config, valueStorage, keyStorage)
+        nfcManager = NfcManager().apply { setCurrentActivity(activity) }
+        val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply { this.activity = activity }
+        val storage = SecureStorage.create(activity)
+        val config = Config().apply {
+            linkedTerminal = false
+            filter.allowedCardTypes = listOf(FirmwareVersion.FirmwareType.Release)
+        }
+        sdk = TangemSdk(nfcManager.reader, delegate, storage, config)
+
         nfcManager.onStart()
         nfcManagerStarted = true
     }
@@ -88,49 +91,13 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     @ReactMethod
-    fun scanCard(param: ReadableMap, promise: Promise) {
+    fun runJSONRPCRequest(param: ReadableMap, promise: Promise) {
         try {
-            sdk.scanCard(param.extractOptional("initialMessage")) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun verify(param: ReadableMap, promise: Promise) {
-        try {
-            sdk.verify(
-                    param.extractOptional("online") ?: false,
+            sdk.startSessionWithJsonRequest(
+                    param.extract<String>("JSONRPCRequest"),
                     param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun purgeWallet(param: ReadableMap, promise: Promise) {
-        try {
-            sdk.purgeWallet(
-                    param.extract("walletIndex"),
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun sign(param: ReadableMap, promise: Promise) {
-        try {
-            sdk.sign(
-                    param.extract("hashes") as Array<ByteArray>,
-                    param.extract("walletPublicKey"),
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
+            ) { handler.post { promise.resolve(normalizeResponse(it)) } }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -207,9 +174,9 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     fun writeUserData(param: ReadableMap, promise: Promise) {
         try {
             sdk.writeUserData(
-                    param.extractOptional("cardId"),
                     param.extract("userData"),
                     param.extractOptional("userCounter"),
+                    param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
             ) { handleResult(it, promise) }
         } catch (ex: Exception) {
@@ -221,49 +188,8 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     fun writeUserProtectedData(param: ReadableMap, promise: Promise) {
         try {
             sdk.writeUserProtectedData(
-                    param.extractOptional("cardId"),
                     param.extract("userProtectedData"),
                     param.extractOptional("userProtectedCounter"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun changePin1(param: ReadableMap, promise: Promise) {
-        try {
-            sdk.changePin1(
-                    param.extractOptional("cardId"),
-                    param.extractOptional("pin"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun changePin2(param: ReadableMap, promise: Promise) {
-        try {
-            sdk.changePin2(
-                    param.extractOptional("cardId"),
-                    param.extractOptional("pin"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun readFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val readFiles: FileCommand.Read = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.readFiles(
-                    readFiles.readPrivateFiles,
-                    readFiles.indices,
                     param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
             ) { handleResult(it, promise) }
@@ -271,49 +197,6 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             handleException(ex, promise)
         }
     }
-
-    @ReactMethod
-    fun writeFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val writeFiles: FileCommand.Write = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.writeFiles(
-                    writeFiles.files,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun deleteFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val deleteFiles: FileCommand.Delete = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.deleteFiles(
-                    deleteFiles.indices,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun changeFilesSettings(param: ReadableMap, promise: Promise) {
-        try {
-            val changeSettings: FileCommand.ChangeSettings = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.changeFilesSettings(
-                    changeSettings.changes,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
 
     @ReactMethod
     fun getNFCStatus(promise: Promise) {
@@ -478,67 +361,13 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     companion object {
         lateinit var wActivity: WeakReference<Activity?>
 
-        val converter = createMoshiJsonConverter()
-
-        private fun createMoshiJsonConverter(): MoshiJsonConverter {
-            val adapters = MoshiJsonConverter.getTangemSdkAdapters().toMutableList()
-            adapters.add(MoshiAdapters.DataToWriteAdapter())
-            adapters.add(MoshiAdapters.DataProtectedBySignatureAdapter())
-            adapters.add(MoshiAdapters.DataProtectedByPasscodeAdapter())
-            val converter = MoshiJsonConverter(adapters)
-            MoshiJsonConverter.setInstance(converter)
-            return converter
-        }
+        val converter = MoshiJsonConverter.INSTANCE
     }
 
     sealed class FileCommand {
         data class Read(val readPrivateFiles: Boolean = false, val indices: List<Int>? = null)
-        data class Write(val files: List<FileData>)
+        data class Write(val files: List<DataToWrite>)
         data class Delete(val indices: List<Int>?)
         data class ChangeSettings(val changes: List<FileSettingsChange>)
-    }
-}
-
-class MoshiAdapters {
-
-    class DataToWriteAdapter {
-        @ToJson
-        fun toJson(src: FileData): String {
-            return when (src) {
-                is FileData.DataProtectedBySignature -> DataProtectedBySignatureAdapter().toJson(src)
-                is FileData.DataProtectedByPasscode -> DataProtectedByPasscodeAdapter().toJson(src)
-            }
-        }
-
-        @FromJson
-        fun fromJson(map: MutableMap<String, Any>): FileData {
-            return if (map.containsKey("signature")) {
-                DataProtectedBySignatureAdapter().fromJson(map)
-            } else {
-                DataProtectedByPasscodeAdapter().fromJson(map)
-            }
-        }
-    }
-
-    class DataProtectedBySignatureAdapter {
-        @ToJson
-        fun toJson(src: FileData.DataProtectedBySignature): String = MoshiJsonConverter.default().toJson(src)
-
-        @FromJson
-        fun fromJson(map: MutableMap<String, Any>): FileData.DataProtectedBySignature {
-            val converter = MoshiJsonConverter.default()
-            return converter.fromJson(converter.toJson(map))!!
-        }
-    }
-
-    class DataProtectedByPasscodeAdapter {
-        @ToJson
-        fun toJson(src: FileData.DataProtectedByPasscode): String = MoshiJsonConverter.default().toJson(src)
-
-        @FromJson
-        fun fromJson(map: MutableMap<String, Any>): FileData.DataProtectedByPasscode {
-            val converter = MoshiJsonConverter.default()
-            return converter.fromJson(converter.toJson(map))!!
-        }
     }
 }
