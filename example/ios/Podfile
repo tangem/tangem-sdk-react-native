@@ -13,5 +13,5 @@ target 'TangemSdkReactNativeNewExample' do
  use_frameworks!
  inhibit_all_warnings!
 
- # pod 'TangemSdk', :git => 'https://github.com/Tangem/tangem-sdk-ios.git', :tag => 'develop-24'
+ pod 'TangemSdk', :git => 'https://github.com/Tangem/tangem-sdk-ios.git', :tag => 'develop-50'
 end

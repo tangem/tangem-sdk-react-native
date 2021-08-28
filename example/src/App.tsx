@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import {
+  Alert,
+  Button,
+  ScrollView,
   StyleSheet,
   Text,
   View,
-  Button,
-  ScrollView,
-  Alert,
 } from 'react-native';
 
-import TangemSdk, { Card } from 'tangem-sdk-react-native-new';
+import TangemSdk, { Card, EllipticCurve } from 'tangem-sdk-react-native-new';
 
 interface ExampleState {
   card?: Card;
@@ -59,11 +59,11 @@ export default class App extends Component<{}> {
       log: error.toString(),
     });
   };
-
   scanCard = () => {
     const initialMessage = { body: 'Hello!!!', header: 'Work now' };
     TangemSdk.scanCard(initialMessage)
       .then((card: Card) => {
+        console.log(card);
         this.setState({
           card,
         });
@@ -78,7 +78,9 @@ export default class App extends Component<{}> {
     if (!card) {
       return Alert.alert('Scan the card first');
     }
-    TangemSdk.createWallet().then(this.onSuccess).catch(this.onError);
+    TangemSdk.createWallet(EllipticCurve.Ed25519, false, card.cardId)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
 
   purgeWallet = () => {
@@ -94,33 +96,37 @@ export default class App extends Component<{}> {
     if (!publicKey) {
       return Alert.alert('Can not find publicKey');
     }
-    TangemSdk.purgeWallet(publicKey).then(this.onSuccess).catch(this.onError);
+    TangemSdk.purgeWallet(publicKey, card.cardId)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
 
-  changePin1 = () => {
+  setPassCode = () => {
     const { card } = this.state;
 
-    // for reset the pinCode set it to '000000'
-    const pin = '111';
+    const passcode = 'ABCDEF';
 
     if (!card) {
       return Alert.alert('Scan the card first');
     }
 
-    TangemSdk.changePin1(pin).then(this.onSuccess).catch(this.onError);
+    TangemSdk.setPasscode(passcode, card.cardId)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
 
-  changePin2 = () => {
+  setAccessCode = () => {
     const { card } = this.state;
 
-    // for reset the pinCode set it to '000'
-    const pin = '222';
+    const accessCode = 'ABCDEF';
 
     if (!card) {
       return Alert.alert('Scan the card first');
     }
 
-    TangemSdk.changePin2(pin).then(this.onSuccess).catch(this.onError);
+    TangemSdk.setAccessCode(accessCode, card.cardId)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
 
   sign = () => {
@@ -142,14 +148,51 @@ export default class App extends Component<{}> {
     if (!publicKey) {
       return Alert.alert('Can not find publicKey');
     }
+    const initialMessage = { body: 'This is body', header: 'This is header' };
 
-    TangemSdk.sign(hashes, publicKey).then(this.onSuccess).catch(this.onError);
+    TangemSdk.sign(hashes, publicKey, card.cardId, undefined, initialMessage)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
 
-  verify = () => {
-    const isOnline = true;
-    TangemSdk.verify(isOnline).then(this.onSuccess).catch(this.onError);
+  writeFiles = () => {
+    const { card } = this.state;
+    if (!card) {
+      return Alert.alert('Scan the card first');
+    }
+    const files = [
+      { data: 'AABBCCDDEEFF' },
+      { data: '00000000' },
+      {
+        data: 'AABBCCDDEEFF',
+        startingSignature:
+          '5BAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
+        finalizingSignature:
+          '5AAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
+        counter: 1,
+      },
+      {
+        data: 'AABBCCDDEEFF',
+        startingSignature:
+          '5BAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
+        finalizingSignature:
+          '5AAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
+        counter: 2,
+      },
+    ];
+    TangemSdk.writeFiles(files, card.cardId)
+      .then(this.onSuccess)
+      .catch(this.onError);
   };
+  readFiles = () => {
+    const { card } = this.state;
+    if (!card) {
+      return Alert.alert('Scan the card first');
+    }
+    TangemSdk.readFiles(true).then(this.onSuccess).catch(this.onError);
+  };
+  changeSettingsFiles = () => {};
+  deleteFiles = () => {};
 
   render() {
     const { log, status } = this.state;
@@ -165,15 +208,18 @@ export default class App extends Component<{}> {
           <View style={styles.row}>
             <Button onPress={this.scanCard} title="scanCard" />
             <Button onPress={this.sign} title="sign" />
-            <Button onPress={this.verify} title="verify" />
           </View>
           <View style={styles.row}>
             <Button onPress={this.createWallet} title="createWallet" />
             <Button onPress={this.purgeWallet} title="purgeWallet" />
           </View>
           <View style={styles.row}>
-            <Button onPress={this.changePin1} title="setPin1" />
-            <Button onPress={this.changePin2} title="setPin2" />
+            <Button onPress={this.setAccessCode} title="setAccessCode" />
+            <Button onPress={this.setPassCode} title="setPassCode" />
+          </View>
+          <View style={styles.row}>
+            <Button onPress={this.writeFiles} title="write" />
+            <Button onPress={this.readFiles} title="read" />
           </View>
         </View>
 

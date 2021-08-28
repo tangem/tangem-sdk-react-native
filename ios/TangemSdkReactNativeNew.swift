@@ -24,87 +24,6 @@ class RNTangemSdk: NSObject {
         }
     }
 
-    @objc(scanCard:resolve:reject:) func scanCard(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.async {
-            self.sdk.scanCard(initialMessage: params?.getArg(.initialMessage)){ [weak self] result in self?.handleResult(result, resolve, reject) }
-        }
-    }
-
-    @objc(createWallet:resolve:reject:) func createWallet(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.main.async {
-            let config: WalletConfigWrapper? = params?.getArg(.config)
-            self.sdk.createWallet(config: config.map { $0.walletConfig }, cardId: params?.getArg(.cardId), initialMessage: params?.getArg(.initialMessage)) { [weak self] result in self?.handleResult(result, resolve, reject) }
-        }
-    }
-
-    @objc(purgeWallet:resolve:reject:) func purgeWallet(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        guard let walletPublicKey: Data = params?.getArg(.walletPublicKey) else {
-            handleMissingArgs(reject)
-            return
-        }
-        sdk.purgeWallet(walletPublicKey: walletPublicKey,
-                        cardId: params?.getArg(.cardId),
-                        initialMessage: params?.getArg(.initialMessage)) {[weak self] result in
-                            self?.handleResult(result, resolve, reject)
-        }
-    }
-
-
-    @objc(sign:resolve:reject:) func sign(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        guard let hexHashes: [String] = params?.getArg(.hashes),
-              let walletPublicKey: Data = params?.getArg(.walletPublicKey) else {
-            handleMissingArgs(reject)
-            return
-        }
-
-        sdk.sign(hashes: hexHashes.compactMap({Data(hexString: $0)}),
-                 walletPublicKey: walletPublicKey,
-                 cardId: params?.getArg(.cardId),
-                 initialMessage: params?.getArg(.initialMessage)) {[weak self] result in
-            switch result {
-            case .success(let signResponse):
-                let hexes = signResponse.map { $0.asHexString() }
-                self?.handleResult(.success(hexes), resolve, reject)
-            case .failure(let error):
-                self?.handleResult(Result<[String], TangemSdkError>.failure(error), resolve, reject)
-            }
-        }
-    }
-
-    @objc(changePin1:resolve:reject:) func changePin1(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        let pin: String? = params?.getArg(.pin)
-
-        sdk.changePin1(pin: pin?.sha256(),
-                       cardId: params?.getArg(.cardId),
-                       initialMessage: params?.getArg(.initialMessage)) { [weak self] result in
-                        self?.handleResult(result, resolve, reject)
-        }
-    }
-
-    @objc(changePin2:resolve:reject:) func changePin2(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        let pin: String? = params?.getArg(.pin)
-
-        sdk.changePin2(pin: pin?.sha256(),
-                       cardId: params?.getArg(.cardId),
-                       initialMessage: params?.getArg(.initialMessage)) { [weak self] result in
-                        self?.handleResult(result, resolve, reject)
-        }
-    }
-
-    @objc(verify:resolve:reject:) func verify(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        if let online: Bool = params?.getArg(.online) {
-            sdk.verify(online: online,
-                       cardId: params?.getArg(.cardId),
-                       initialMessage: params?.getArg(.initialMessage)) { [weak self] result in
-                        self?.handleResult(result, resolve, reject) }
-        } else {
-            sdk.verify(cardId: params?.getArg(.cardId),
-                       initialMessage: params?.getArg(.initialMessage)) { [weak self] result in
-                        self?.handleResult(result, resolve, reject)
-            }
-        }
-    }
-
     @objc(readIssuerData:resolve:reject:) func readIssuerData(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         sdk.readIssuerData(cardId: params?.getArg(.cardId),
                            initialMessage: params?.getArg(.initialMessage)) {[weak self] result in
@@ -207,6 +126,31 @@ class RNTangemSdk: NSObject {
         }
     }
 
+    private func getArg<T>(for key: ArgKey, from arguments: Any?) -> T? {
+        if let value = (arguments as? NSDictionary)?[key.rawValue] {
+            return value as? T
+        }
+
+        return nil
+    }
+
+    @objc(runJSONRPCRequest:resolve:reject:) func runJSONRPCRequest(_ args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let infoDictionary = args as? Dictionary<String,Any>
+        guard let request: String = getArg(for: .request, from: infoDictionary) else {
+            handleMissingArgs(reject)
+            return
+        }
+        let cardId: String? = getArg(for: .cardId, from: args)
+        let initialMessage: String? = getArg(for: .initialMessage, from: args)
+
+        sdk.startSession(with: request,
+                         cardId: cardId,
+                         initialMessage: initialMessage) { result in
+            resolve(result)
+        }
+    }
+
+
     private func handleMissingArgs(_ reject: RCTPromiseRejectBlock) {
         let missingArgsError = PluginError(code: 9999, localizedDescription: "Some arguments are missing or wrong")
         reject("\(missingArgsError.code)", missingArgsError.localizedDescription, nil)
@@ -215,7 +159,7 @@ class RNTangemSdk: NSObject {
     private func handleResult<TResult: JSONStringConvertible>(_ sdkResult: Result<TResult, TangemSdkError>, _ resolve: RCTPromiseResolveBlock, _ reject: RCTPromiseRejectBlock) {
         switch sdkResult {
         case .success(let response):
-            guard let data = response.description.data(using: .utf8) else { resolve({}); break }
+            guard let data = response.json.data(using: .utf8) else { resolve({}); break }
             let jsonObject = try? JSONSerialization.jsonObject(with: data, options: [])
             resolve(jsonObject)
         case .failure(let error):
@@ -248,32 +192,30 @@ fileprivate extension TangemSdkError {
 
 fileprivate enum ArgKey: String {
     case pin1
-    case pin2
+//    case pin2
     case cardId
-    case hashes
+//    case hashes
     case userCounter
     case userProtectedCounter
     case userData
     case issuerDataCounter
     case userProtectedData
-    case issuerDataSignature
     case issuerData
-    case issuerPrivateKey
-    case issuer
-    case manufacturer
-    case acquirer
-    case cardConfig
-    case pin
-    case initialMessage
+    case issuerDataSignature
     case startingSignature
     case finalizingSignature
-    case online
-    case files
+//    case issuer
+//    case manufacturer
+//    case acquirer
+//    case cardConfig
+//    case pinCode
+    case initialMessage
+    case fileData
+    case fileCounter
+    case privateKey
     case readPrivateFiles
     case indices
-    case changes
-    case walletPublicKey
-    case config
+    case request
 }
 
 fileprivate extension Dictionary where Key == String, Value == Any {
@@ -314,17 +256,6 @@ fileprivate extension Dictionary where Key == String, Value == Any {
                 return nil
             }
         }
-    }
-}
-
-fileprivate struct WalletConfigWrapper: Codable {
-    let isReusable: Bool?
-    let prohibitPurgeWallet: Bool?
-    let curveid: String?
-    let signingMethods: String?
-
-    var walletConfig: WalletConfig {
-        WalletConfig(isReusable: isReusable, prohibitPurgeWallet: prohibitPurgeWallet, curveId: (curveid != nil) ?  EllipticCurve(rawValue: curveid!) : nil, signingMethods: nil)
     }
 }
 

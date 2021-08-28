@@ -60,5 +60,14 @@
 		<string>A000000812010208</string>
 		<string>D2760000850101</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+      <dict>
+          <key>NSAllowsArbitraryLoads</key>
+          <true/>
+          <key>NSAllowsArbitraryLoadsInWebContent</key>
+          <true/>
+          <key>NSAllowsLocalNetworking</key>
+          <true/>
+      </dict>
 </dict>
 </plist>
