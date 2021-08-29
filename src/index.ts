@@ -7,12 +7,11 @@ import type { Message, TangemSdk } from './types';
 const { RNTangemSdk } = NativeModules;
 
 function convertRequest(params: { [k: string]: any }): Object {
-  if (Platform.OS === 'android') return params;
   Object.keys(params).forEach(function (key) {
     if (typeof params[key] === 'undefined') {
       delete params[key];
     }
-    if (typeof params[key] === 'object') {
+    if (Platform.OS === 'ios' && typeof params[key] === 'object') {
       params[key] = JSON.stringify(params[key]);
     }
   });
@@ -30,12 +29,10 @@ async function execCommand(
     cardId,
     initialMessage,
   };
-  console.log(request);
   return new Promise(async (resolve, reject) => {
     const response = await RNTangemSdk.runJSONRPCRequest(
       convertRequest(request)
     );
-    console.log(response);
     const parseResponse = JSON.parse(response);
     if (parseResponse.error) {
       reject(new Error(JSON.stringify(parseResponse.error, null, '\t')));
