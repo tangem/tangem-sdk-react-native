@@ -25,9 +25,9 @@ async function execCommand(
   initialMessage?: Message
 ): Promise<any> {
   const request = {
-    request: { jsonrpc: '2.0', id: '1', method, params },
+    JSONRPCRequest: JSON.stringify({ jsonrpc: '2.0', id: '1', method, params }),
     cardId,
-    initialMessage,
+    initialMessage: JSON.stringify(initialMessage),
   };
   return new Promise(async (resolve, reject) => {
     const response = await RNTangemSdk.runJSONRPCRequest(
