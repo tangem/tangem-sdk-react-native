@@ -10,9 +10,9 @@ import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import com.tangem.*
+import com.tangem.Log
+import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
-import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
@@ -29,7 +29,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.lang.ref.WeakReference
-import java.util.*
 
 class TangemSdkReactNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
 
@@ -56,10 +55,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
         val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply { this.activity = activity }
         val storage = SecureStorage.create(activity)
-        val config = Config().apply {
-            linkedTerminal = false
-            filter.allowedCardTypes = listOf(FirmwareVersion.FirmwareType.Release)
-        }
+        val config = Config().apply { linkedTerminal = false }
         sdk = TangemSdk(nfcManager.reader, delegate, storage, config)
 
         nfcManager.onStart()
@@ -94,10 +90,75 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     fun runJSONRPCRequest(param: ReadableMap, promise: Promise) {
         try {
             sdk.startSessionWithJsonRequest(
-                    param.extract<String>("JSONRPCRequest"),
+                    param.extract("JSONRPCRequest"),
                     param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
             ) { handler.post { promise.resolve(normalizeResponse(it)) } }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun scanCard(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.scanCard(param.extractOptional("initialMessage")) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun createWallet(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.createWallet(
+                    param.extract("curve"),
+                    param.extract("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun purgeWallet(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.purgeWallet(
+                    param.extract("walletPublicKey"),
+                    param.extract("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun signHash(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.sign(
+                    param.extract("hash") as ByteArray,
+                    param.extract("walletPublicKey"),
+                    param.extract("cardId"),
+                    param.extractOptional("hdPath"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun signHashes(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.sign(
+                    param.extract("hash") as Array<ByteArray>,
+                    param.extract("walletPublicKey"),
+                    param.extract("cardId"),
+                    param.extractOptional("hdPath"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
         }
@@ -134,8 +195,8 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     fun readIssuerExtraData(param: ReadableMap, promise: Promise) {
         try {
             sdk.readIssuerExtraData(
+                    param.extractOptional("cardId"),
                     param.extractOptional("issuerDataCounter"),
-                    param.extractOptional("initialMessage")
             ) { handleResult(it, promise) }
         } catch (ex: Exception) {
             handleException(ex, promise)
@@ -190,6 +251,89 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             sdk.writeUserProtectedData(
                     param.extract("userProtectedData"),
                     param.extractOptional("userProtectedCounter"),
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun setAccessCode(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.setAccessCode(
+                    param.extractOptional("accessCode"),
+                    param.extract("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun setPasscode(param: ReadableMap, promise: Promise) {
+        try {
+            sdk.setPasscode(
+                    param.extractOptional("passcode"),
+                    param.extract("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun readFiles(param: ReadableMap, promise: Promise) {
+        try {
+            val readFiles: FileCommand.Read = converter.fromJson(converter.toJson(param.toHashMap()))!!
+            sdk.readFiles(
+                    readFiles.readPrivateFiles,
+                    readFiles.indices,
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun writeFiles(param: ReadableMap, promise: Promise) {
+        try {
+            val writeFiles: FileCommand.Write = converter.fromJson(converter.toJson(param.toHashMap()))!!
+            sdk.writeFiles(
+                    writeFiles.files,
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun deleteFiles(param: ReadableMap, promise: Promise) {
+        try {
+            val deleteFiles: FileCommand.Delete = converter.fromJson(converter.toJson(param.toHashMap()))!!
+            sdk.deleteFiles(
+                    deleteFiles.indices,
+                    param.extractOptional("cardId"),
+                    param.extractOptional("initialMessage")
+            ) { handleResult(it, promise) }
+        } catch (ex: Exception) {
+            handleException(ex, promise)
+        }
+    }
+
+    @ReactMethod
+    fun changeFileSettings(param: ReadableMap, promise: Promise) {
+        try {
+            val changeSettings: FileCommand.ChangeSettings = converter.fromJson(converter.toJson(param.toHashMap()))!!
+            sdk.changeFileSettings(
+                    changeSettings.changes,
                     param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
             ) { handleResult(it, promise) }
@@ -267,8 +411,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     private fun normalizeResponse(resp: Any?): WritableMap {
-        val jsonString = converter.toJson(resp)
-        val jsonObject = JSONObject(jsonString)
+        val jsonObject = when (resp) {
+            is String -> JSONObject(resp)
+            else -> JSONObject(converter.toJson(resp))
+        }
         return toWritableMap(jsonObject)
     }
 
