@@ -1,0 +1,17 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '13.0'
+
+target 'TangemSdkReactNativeNewExample' do
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  pod 'tangem-sdk-react-native-new', :path => '../..'
+
+ use_frameworks!
+ inhibit_all_warnings!
+
+ pod 'TangemSdk', :git => 'https://github.com/Tangem/tangem-sdk-ios.git', :tag => 'develop-50'
+end
