@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # tangem-sdk-react-native-new
 
 The Tangem card is a self-custodial hardware wallet for blockchain assets. The main functions of Tangem cards are to securely create and store a private key from a blockchain wallet and sign blockchain transactions. The Tangem card does not allow users to import/export, backup/restore private keys, thereby guaranteeing that the wallet is unique and unclonable.
