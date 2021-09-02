@@ -248,7 +248,7 @@ PODS:
   - tangem-sdk-react-native-new (1.0.0):
     - React-Core
     - TangemSdk
-  - TangemSdk
+  - TangemSdk (3.0.2)
   - Yoga (1.14.0)
 
 DEPENDENCIES:

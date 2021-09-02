@@ -30,14 +30,17 @@ async function execCommand(
     initialMessage: JSON.stringify(initialMessage),
   };
   return new Promise(async (resolve, reject) => {
-    const response = await RNTangemSdk.runJSONRPCRequest(
-      convertRequest(request)
-    );
-    const parseResponse = JSON.parse(response);
-    if (parseResponse.error) {
-      reject(new Error(JSON.stringify(parseResponse.error, null, '\t')));
+    try {
+      const response = await RNTangemSdk.runJSONRPCRequest(request);
+      const parseResponse =
+        typeof response === 'object' ? response : JSON.parse(response);
+      if (parseResponse.error) {
+        reject(new Error(JSON.stringify(parseResponse.error, null, '\t')));
+      }
+      resolve(parseResponse.result);
+    } catch (e) {
+      reject(new Error('Could not complete the request'));
     }
-    resolve(parseResponse.result);
   });
 }
 

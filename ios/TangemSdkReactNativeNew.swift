@@ -136,7 +136,7 @@ class RNTangemSdk: NSObject {
 
     @objc(runJSONRPCRequest:resolve:reject:) func runJSONRPCRequest(_ args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         let infoDictionary = args as? Dictionary<String,Any>
-        guard let request: String = getArg(for: .request, from: infoDictionary) else {
+        guard let request: String = getArg(for: .JSONRPCRequest, from: infoDictionary) else {
             handleMissingArgs(reject)
             return
         }
@@ -215,7 +215,7 @@ fileprivate enum ArgKey: String {
     case privateKey
     case readPrivateFiles
     case indices
-    case request
+    case JSONRPCRequest
 }
 
 fileprivate extension Dictionary where Key == String, Value == Any {
