@@ -55,8 +55,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
         val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply { this.activity = activity }
         val storage = SecureStorage.create(activity)
-        val config = Config().apply { linkedTerminal = false }
-        sdk = TangemSdk(nfcManager.reader, delegate, storage, config)
+        sdk = TangemSdk(nfcManager.reader, delegate, storage, Config())
 
         nfcManager.onStart()
         nfcManagerStarted = true
