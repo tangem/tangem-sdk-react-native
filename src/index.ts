@@ -85,7 +85,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [hdPath] Derivation path of the wallet. Optional. COS v. 4.28 and higher
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<Data[]>} response
+   * @returns {Promise<SignResponse>} response
    */
   sign: (hashes, walletPublicKey, cardId, hdPath, initialMessage) =>
     execCommand(

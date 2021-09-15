@@ -1,4 +1,4 @@
-# tangem-sdk-react-native-new
+# tangem-sdk-react-native
 
 The Tangem card is a self-custodial hardware wallet for blockchain assets. The main functions of Tangem cards are to securely create and store a private key from a blockchain wallet and sign blockchain transactions. The Tangem card does not allow users to import/export, backup/restore private keys, thereby guaranteeing that the wallet is unique and unclonable.
 
@@ -30,7 +30,7 @@ Android with minimal SDK version of 21 and a device with NFC support
 ## Installation
 
 ```sh
-npm install tangem-sdk-react-native-new
+npm install tangem-sdk-react-native
 ```
 
 #### Android Notes
@@ -201,7 +201,7 @@ Method `tangemSdk.scanCard()` is needed to obtain information from the Tangem ca
 | initialMessage | _(Optional)_ A custom description that shows at the beginning of the NFC session. If nil, default message will be used |
 
 ```js
-import TangemSdk from 'tangem-sdk-react-native-new';
+import TangemSdk from 'tangem-sdk-react-native';
 
 // ...
 
@@ -229,7 +229,7 @@ Method `tangemSdk.sign()` allows you to sign one or multiple hashes. The SIGN co
 | initialMessage  | _(Optional)_ A custom description that shows at the beginning of the NFC session. If nil, default message will be used |
 
 ```js
-import TangemSdk from 'tangem-sdk-react-native-new';
+import TangemSdk from 'tangem-sdk-react-native';
 
 // ...
 
@@ -258,7 +258,7 @@ TangemSdk.sign(hashes, walletPublicKey, cardId, initialMessage)
 Method `TangemSdk.getNFCStatus()` will return current NFC Status which is supported on the device or is NFC enabled on the device.
 
 ```js
-import TangemSdk from 'tangem-sdk-react-native-new';
+import TangemSdk from 'tangem-sdk-react-native';
 
 // ...
 TangemSdk.getNFCStatus();
@@ -271,7 +271,7 @@ with `TangemSdk.on()` and `TangemSdk.removeListener()` you should be able to add
 Supported Events: `NFCStateChange`
 
 ```js
-import TangemSdk from 'tangem-sdk-react-native-new';
+import TangemSdk from 'tangem-sdk-react-native';
 
 // ...
 TangemSdk.on('NFCStateChange', (enabled) => {

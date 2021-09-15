@@ -51,9 +51,9 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/TangemSdkReactNativeNewExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > tangem-sdk-react-native-new`.
+To edit the Objective-C files, open `example/ios/TangemSdkReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > tangem-sdk-react-native`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `tangemsdkreactnativenew` under `Android`.
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `TangemSdkReactNative` under `Android`.
 
 ### Commit message convention
 

@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import TangemSdk, { Card, EllipticCurve } from 'tangem-sdk-react-native-new';
+import TangemSdk, { Card, EllipticCurve } from 'tangem-sdk-react-native';
 
 interface ExampleState {
   card?: Card;

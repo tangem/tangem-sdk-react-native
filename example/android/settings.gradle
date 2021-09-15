@@ -1,6 +1,6 @@
-rootProject.name = 'TangemSdkReactNativeNewExample'
+rootProject.name = 'TangemSdkReactNativeExample'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 
-include ':tangemsdkreactnativenew'
-project(':tangemsdkreactnativenew').projectDir = new File(rootProject.projectDir, '../../android')
+include ':TangemSdkReactNative'
+project(':TangemSdkReactNative').projectDir = new File(rootProject.projectDir, '../../android')

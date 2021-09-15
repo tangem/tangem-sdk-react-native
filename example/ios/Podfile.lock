@@ -245,7 +245,7 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
-  - tangem-sdk-react-native-new (1.0.0):
+  - tangem-sdk-react-native (1.0.0):
     - React-Core
     - TangemSdk
   - TangemSdk (3.0.2)
@@ -279,7 +279,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - tangem-sdk-react-native-new (from `../..`)
+  - tangem-sdk-react-native (from `../..`)
   - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-50`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -338,7 +338,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  tangem-sdk-react-native-new:
+  tangem-sdk-react-native:
     :path: "../.."
   TangemSdk:
     :git: https://github.com/Tangem/tangem-sdk-ios.git
@@ -378,10 +378,10 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
-  tangem-sdk-react-native-new: 862ec0b91c4561cd4e905fbd833bf6edcd52567f
+  tangem-sdk-react-native: 4f7571644d3c9bbf125c98bc57ec5ff246c6ee6a
   TangemSdk: 7a03e776285f3582e36fa9f6036ad5800c9ae9f1
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: e4e4db4b55d21b46cb877152e4c45ab581cbe41e
+PODFILE CHECKSUM: 80f2db9784eeadbe5c887d40f445a4e87d51ecb6
 
 COCOAPODS: 1.10.1

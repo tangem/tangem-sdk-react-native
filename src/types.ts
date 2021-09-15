@@ -34,12 +34,6 @@ export enum FileSettings {
   Public,
 }
 
-export enum FileValidation {
-  NotValidated = 'notValidated',
-  Valid = 'valid',
-  Corrupted = 'corrupted',
-}
-
 export enum Status {
   Failed = 'failed',
   Warning = 'warning',
@@ -420,14 +414,19 @@ export interface SuccessResponse {
   cardId: string;
 }
 
-/**
- * Config of Wallet
- */
-export interface WalletConfig {
-  isReusable?: boolean;
-  prohibitPurgeWallet?: boolean;
-  EllipticCurve?: EllipticCurve;
-  signingMethods?: SigningMethod;
+export interface SignResponse {
+  /**
+   * Unique Tangem card ID number.
+   */
+  cardId: string;
+  /**
+   * Signed hashes (array of resulting signatures)
+   */
+  signatures: Data[];
+  /**
+   * Total number of signed  hashes returned by the wallet since its creation. COS: 1.16+
+   */
+  totalSignedHashes?: number;
 }
 
 export interface FileSettingsChange {
@@ -458,20 +457,6 @@ export interface WriteFilesResponse {
   fileIndex?: number;
 }
 
-export interface DeleteFilesResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
-export interface ChangeFilesSettingsResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
 export interface TangemSdk {
   scanCard(initialMessage?: Message): Promise<Card>;
 
@@ -481,7 +466,7 @@ export interface TangemSdk {
     cardId: string,
     hdPath?: DerivationPath,
     initialMessage?: Message
-  ): Promise<[Data]>;
+  ): Promise<[SignResponse]>;
 
   readIssuerData(
     cardId?: string,
@@ -571,13 +556,13 @@ export interface TangemSdk {
     indicesToDelete?: number[],
     cardId?: string,
     initialMessage?: Message
-  ): Promise<DeleteFilesResponse>;
+  ): Promise<SuccessResponse>;
 
   changeFilesSettings(
     changes: FileSettingsChange,
     cardId?: String,
     initialMessage?: Message
-  ): Promise<ChangeFilesSettingsResponse>;
+  ): Promise<SuccessResponse>;
 
   startSession(): Promise<void>;
 

@@ -29,9 +29,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "TangemSdkReactNativeNewExample.app"
-               BlueprintName = "TangemSdkReactNativeNewExample"
-               ReferencedContainer = "container:TangemSdkReactNativeNewExample.xcodeproj">
+               BuildableName = "TangemSdkReactNativeExample.app"
+               BlueprintName = "TangemSdkReactNativeExample"
+               ReferencedContainer = "container:TangemSdkReactNativeExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TangemSdkReactNativeNewExample.app"
-            BlueprintName = "TangemSdkReactNativeNewExample"
-            ReferencedContainer = "container:TangemSdkReactNativeNewExample.xcodeproj">
+            BuildableName = "TangemSdkReactNativeExample.app"
+            BlueprintName = "TangemSdkReactNativeExample"
+            ReferencedContainer = "container:TangemSdkReactNativeExample.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -68,9 +68,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TangemSdkReactNativeNewExample.app"
-            BlueprintName = "TangemSdkReactNativeNewExample"
-            ReferencedContainer = "container:TangemSdkReactNativeNewExample.xcodeproj">
+            BuildableName = "TangemSdkReactNativeExample.app"
+            BlueprintName = "TangemSdkReactNativeExample"
+            ReferencedContainer = "container:TangemSdkReactNativeExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -85,9 +85,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TangemSdkReactNativeNewExample.app"
-            BlueprintName = "TangemSdkReactNativeNewExample"
-            ReferencedContainer = "container:TangemSdkReactNativeNewExample.xcodeproj">
+            BuildableName = "TangemSdkReactNativeExample.app"
+            BlueprintName = "TangemSdkReactNativeExample"
+            ReferencedContainer = "container:TangemSdkReactNativeExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
