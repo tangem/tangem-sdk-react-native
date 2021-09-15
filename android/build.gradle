@@ -1,6 +1,6 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['TangemSdkReactNativeNew_kotlinVersion']
+  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['TangemSdkReactNative_kotlinVersion']
 
   repositories {
     google()
@@ -20,11 +20,11 @@ apply plugin: 'kotlin-kapt'
 
 
 def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['TangemSdkReactNativeNew_' + name]
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['TangemSdkReactNative_' + name]
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['TangemSdkReactNativeNew_' + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['TangemSdkReactNative_' + name]).toInteger()
 }
 
 android {

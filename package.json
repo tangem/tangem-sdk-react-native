@@ -1,5 +1,5 @@
 {
-  "name": "tangem-sdk-react-native-new",
+  "name": "tangem-sdk-react-native",
   "title": "React Native Tangem Sdk",
   "version": "1.0.0",
   "description": "React Native Tangem Sdk",
@@ -14,7 +14,7 @@
     "android",
     "ios",
     "cpp",
-    "tangem-sdk-react-native-new.podspec",
+    "tangem-sdk-react-native.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!ios/build",
@@ -37,13 +37,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/tangem/tangem-sdk-react-native-new",
+  "repository": "https://github.com/tangem/tangem-sdk-react-native",
   "author": "Pavel Sidorov <psidorov@tangem.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tangem/tangem-sdk-react-native-new/issues"
+    "url": "https://github.com/tangem/tangem-sdk-react-native/issues"
   },
-  "homepage": "https://github.com/tangem/tangem-sdk-react-native-new#readme",
+  "homepage": "https://github.com/tangem/tangem-sdk-react-native#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

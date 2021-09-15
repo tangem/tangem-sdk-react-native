@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  TangemSdkReactNativeNewExample
+//  TangemSdkReactNativeExample
 //
 
 import Foundation
