@@ -306,95 +306,6 @@ export interface Message {
   header?: string;
 }
 
-export interface ReadIssuerDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-  /**
-   * Data defined by user's App.
-   */
-  userData: Data;
-  /**
-   * Counter initialized by user's App and increased on every signing of new transaction
-   */
-  userProtectedData: Data;
-  /**
-   * Counter initialized by user's App and increased on every signing of new transaction
-   */
-  userCounter: number;
-  /**
-   * Counter initialized by user's App (confirmed by PIN2) and increased on every signing of new transaction
-   */
-  userProtectedCounter: number;
-}
-
-export interface WriteIssuerDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
-export interface WriteIssuerExtraDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
-export interface WriteUserDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
-export interface WriteUserProtectedDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-}
-
-export interface ReadIssuerExtraDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-  /**
-   * Size of all Issuer_Extra_Data field.
-   */
-  size?: number;
-  /**
-   * Data defined by issuer.
-   */
-  issuerData?: Data;
-}
-
-export interface ReadUserDataResponse {
-  /**
-   * Unique Tangem card ID number.
-   */
-  cardId: string;
-  /**
-   * Data defined by user's App.
-   */
-  userData: Data;
-  /**
-   * Counter initialized by user's App and increased on every signing of new transaction
-   */
-  userProtectedData: Data;
-  /**
-   * Counter initialized by user's App and increased on every signing of new transaction
-   */
-  userCounter: number;
-  /**
-   * Counter initialized by user's App (confirmed by PIN2) and increased on every signing of new transaction
-   */
-  userProtectedCounter: number;
-}
-
 export interface CreateWalletResponse {
   /**
    * Unique Tangem card ID number.
@@ -414,7 +325,22 @@ export interface SuccessResponse {
   cardId: string;
 }
 
-export interface SignResponse {
+export interface SignHashResponse {
+  /**
+   * Unique Tangem card ID number.
+   */
+  cardId: string;
+  /**
+   * Signed hash
+   */
+  signature: Data;
+  /**
+   * Total number of signed  hashes returned by the wallet since its creation. COS: 1.16+
+   */
+  totalSignedHashes?: number;
+}
+
+export interface SignHashesResponse {
   /**
    * Unique Tangem card ID number.
    */
@@ -460,63 +386,24 @@ export interface WriteFilesResponse {
 export interface TangemSdk {
   scanCard(initialMessage?: Message): Promise<Card>;
 
-  sign(
-    hashes: Data[],
+  signHash(
+    hashes: Data,
     walletPublicKey: Data,
     cardId: string,
     hdPath?: DerivationPath,
     initialMessage?: Message
-  ): Promise<[SignResponse]>;
+  ): Promise<[SignHashResponse]>;
 
-  readIssuerData(
-    cardId?: string,
+  signHashes(
+    hash: Data[],
+    walletPublicKey: Data,
+    cardId: string,
+    hdPath?: DerivationPath,
     initialMessage?: Message
-  ): Promise<ReadIssuerDataResponse>;
-
-  writeIssuerData(
-    issuerData: Data,
-    issuerDataSignature: Data,
-    issuerDataCounter?: number,
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<WriteIssuerDataResponse>;
-
-  readIssuerExtraData(
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<ReadIssuerExtraDataResponse>;
-
-  writeIssuerExtraData(
-    issuerData: Data,
-    startingSignature: Data,
-    finalizingSignature: Data,
-    issuerDataCounter?: number,
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<WriteIssuerExtraDataResponse>;
-
-  readUserData(
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<ReadUserDataResponse>;
-
-  writeUserData(
-    userData: Data,
-    userCounter: number,
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<WriteUserDataResponse>;
-
-  writeUserProtectedData(
-    userProtectedData: Data,
-    userProtectedCounter: Data,
-    cardId?: string,
-    initialMessage?: Message
-  ): Promise<WriteUserProtectedDataResponse>;
+  ): Promise<[SignHashesResponse]>;
 
   createWallet(
     curve: EllipticCurve,
-    isPermanent: boolean,
     cardId: string,
     initialMessage?: Message
   ): Promise<CreateWalletResponse>;
@@ -539,18 +426,23 @@ export interface TangemSdk {
     initialMessage?: Message
   ): Promise<SuccessResponse>;
 
+  resetUserCodes(
+    cardId: string,
+    initialMessage?: Message
+  ): Promise<SuccessResponse>;
+
   readFiles(
     readPrivateFiles: boolean,
     indices?: number[],
     cardId?: string,
     initialMessage?: Message
-  ): Promise<ReadFilesResponse>;
+  ): Promise<SuccessResponse>;
 
   writeFiles(
     files: File[],
     cardId?: string,
     initialMessage?: Message
-  ): Promise<WriteFilesResponse>;
+  ): Promise<SuccessResponse>;
 
   deleteFiles(
     indicesToDelete?: number[],
@@ -563,6 +455,12 @@ export interface TangemSdk {
     cardId?: String,
     initialMessage?: Message
   ): Promise<SuccessResponse>;
+
+  runJSONRPCRequest(
+    JSONRPCRequest: object,
+    cardId?: string,
+    initialMessage?: Message
+  ): Promise<any>;
 
   startSession(): Promise<void>;
 
