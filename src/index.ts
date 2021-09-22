@@ -6,26 +6,30 @@ import type { Message, TangemSdk } from './types';
 
 const { RNTangemSdk } = NativeModules;
 
-function convertRequest(params: { [k: string]: any }): Object {
-  Object.keys(params).forEach(function (key) {
-    if (typeof params[key] === 'undefined') {
-      delete params[key];
-    }
-    if (Platform.OS === 'ios' && typeof params[key] === 'object') {
-      params[key] = JSON.stringify(params[key]);
-    }
-  });
-  return params;
+function getJsonRequest(method: SdkMethod = 'scan', params = {}) {
+  return { jsonrpc: '2.0', id: '1', method, params };
 }
 
-async function execCommand(
+function execCommand(
   method: SdkMethod = 'scan',
   params = {},
   cardId?: String,
   initialMessage?: Message
 ): Promise<any> {
+  return execJsonRPCRequest(
+    getJsonRequest(method, params),
+    cardId,
+    initialMessage
+  );
+}
+
+async function execJsonRPCRequest(
+  jsonRequest = {},
+  cardId?: String,
+  initialMessage?: Message
+): Promise<any> {
   const request = {
-    JSONRPCRequest: JSON.stringify({ jsonrpc: '2.0', id: '1', method, params }),
+    JSONRPCRequest: JSON.stringify(jsonRequest),
     cardId,
     initialMessage: JSON.stringify(initialMessage),
   };
@@ -46,11 +50,13 @@ async function execCommand(
 
 type SdkMethod =
   | 'scan'
+  | 'sign_hash'
   | 'sign_hashes'
   | 'create_wallet'
   | 'purge_wallet'
   | 'set_accesscode'
   | 'set_passcode'
+  | 'reset_usercodes'
   | 'preflight_read'
   | 'change_file_settings'
   | 'delete_files'
@@ -71,6 +77,32 @@ const tangemSdk: TangemSdk = {
     execCommand('scan', {}, undefined, initialMessage),
 
   /**
+   * This method allows you to sign one hash.
+   * Please note that Tangem cards usually protect the signing with a security delay
+   * that may last up to 45 seconds, depending on a card.
+   * It is for `SessionViewDelegate` to notify users of security delay.
+   * Note: Wallet index works only on COS v.4.0 and higher. For previous version index will be ignored
+   * @param {Data} hash Array of transaction hashes. It can be from one or up to ten hashes of the same length.
+   * @param {Data} walletPublicKey Public key of wallet that should sign hashes.
+   * @param {string} cardId Unique Tangem card ID number.
+   * @param {string} [hdPath] Derivation path of the wallet. Optional. COS v. 4.28 and higher
+   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
+   *
+   * @returns {Promise<SignResponse>} response
+   */
+  signHash: (hash, walletPublicKey, cardId, hdPath, initialMessage) =>
+    execCommand(
+      'sign_hash',
+      {
+        walletPublicKey,
+        hdPath,
+        hash,
+      },
+      cardId,
+      initialMessage
+    ),
+
+  /**
    * This method allows you to sign one or multiple hashes.
    * Simultaneous signing of array of hashes in a single `SignCommand` is required to support
    * Bitcoin-type multi-input blockchains (UTXO).
@@ -87,7 +119,7 @@ const tangemSdk: TangemSdk = {
    *
    * @returns {Promise<SignResponse>} response
    */
-  sign: (hashes, walletPublicKey, cardId, hdPath, initialMessage) =>
+  signHashes: (hashes, walletPublicKey, cardId, hdPath, initialMessage) =>
     execCommand(
       'sign_hashes',
       {
@@ -100,194 +132,6 @@ const tangemSdk: TangemSdk = {
     ),
 
   /**
-   * @deprecated Use files instead
-   * This command return 512-byte Issuer Data field and its issuer’s signature.
-   * Issuer Data is never changed or parsed from within the Tangem COS. The issuer defines purpose of use,
-   * format and payload of Issuer Data. For example, this field may contain information about
-   * wallet balance signed by the issuer or additional issuer’s attestation data.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<ReadIssuerDataResponse>}
-   */
-  readIssuerData: (cardId, initialMessage) =>
-    RNTangemSdk.readIssuerData(convertRequest({ cardId, initialMessage })),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This command writes some UserData, and UserCounter fields.
-   * User_Data are never changed or parsed by the executable code the Tangem COS.
-   * The App defines purpose of use, format and it's payload. For example, this field may contain cashed information
-   * from blockchain to accelerate preparing new transaction.
-   * User_Counter are counter, that initial value can be set by App and increased on every signing
-   * of new transaction (on SIGN command that calculate new signatures). The App defines purpose of use.
-   * For example, this fields may contain blockchain nonce value.
-   * @param {Data} issuerData Data defined by user’s App
-   * @param {Data} issuerDataSignature Issuer’s signature of `issuerData` with Issuer Data Private Key (which is kept on card).
-   * @param {number} [issuerDataCounter] Counter initialized by user’s App and increased on every signing of new transaction.
-   *  If nil, the current counter value will not be overwritten.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<WriteIssuerDataResponse>}
-   */
-  writeIssuerData: (
-    issuerData,
-    issuerDataSignature,
-    issuerDataCounter,
-    cardId,
-    initialMessage
-  ) =>
-    RNTangemSdk.writeIssuerData(
-      convertRequest({
-        issuerData,
-        issuerDataSignature,
-        issuerDataCounter,
-        cardId,
-        initialMessage,
-      })
-    ),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This task retrieves Issuer Extra Data field and its issuer’s signature.
-   * Issuer Extra Data is never changed or parsed from within the Tangem COS. The issuer defines purpose of use,
-   * format and payload of Issuer Data. . For example, this field may contain photo or
-   * biometric information for ID card product. Because of the large size of Issuer_Extra_Data,
-   * a series of these commands have to be executed to read the entire Issuer_Extra_Data.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<ReadIssuerExtraDataResponse>}
-   */
-  readIssuerExtraData: (cardId, initialMessage) =>
-    RNTangemSdk.readIssuerExtraData({ cardId, initialMessage }),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This task writes Issuer Extra Data field and its issuer’s signature.
-   * Issuer Extra Data is never changed or parsed from within the Tangem COS.
-   * The issuer defines purpose of use, format and payload of Issuer Data.
-   * For example, this field may contain a photo or biometric information for ID card products.
-   * Because of the large size of Issuer_Extra_Data, a series of these commands have to be executed
-   * to write entire Issuer_Extra_Data.
-   * @param {Data} issuerData Data provided by issuer.
-   * @param {Data} startingSignature Issuer’s signature with Issuer Data Private Key of `cardId`,
-   * `issuerDataCounter` (if flags Protect_Issuer_Data_Against_Replay and
-   * Restrict_Overwrite_Issuer_Extra_Data are set in `SettingsMask`) and size of `issuerData`.
-   * @param {Data} finalizingSignature Issuer’s signature with Issuer Data Private Key of `cardId`,
-   * `issuerData` and `issuerDataCounter` (the latter one only if flags Protect_Issuer_Data_Against_Replay
-   * and Restrict_Overwrite_Issuer_Extra_Data are set in `SettingsMask`).
-   * @param {number} [issuerDataCounter] An optional counter that protect issuer data against replay attack.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<WriteIssuerExtraDataResponse>}
-   */
-  writeIssuerExtraData: (
-    issuerData,
-    startingSignature,
-    finalizingSignature,
-    issuerDataCounter,
-    cardId,
-    initialMessage
-  ) =>
-    RNTangemSdk.writeIssuerExtraData(
-      convertRequest({
-        issuerData,
-        startingSignature,
-        finalizingSignature,
-        issuerDataCounter,
-        cardId,
-        initialMessage,
-      })
-    ),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This command return two up to 512-byte User_Data, User_Protected_Data and two counters User_Counter and
-   * User_Protected_Counter fields.
-   * User_Data and User_ProtectedData are never changed or parsed by the executable code the Tangem COS.
-   * The App defines purpose of use, format and it's payload. For example, this field may contain cashed information
-   * from blockchain to accelerate preparing new transaction.
-   * User_Counter and User_ProtectedCounter are counters, that initial values can be set by App and increased on every signing
-   * of new transaction (on SIGN command that calculate new signatures). The App defines purpose of use.
-   * For example, this fields may contain blockchain nonce value.
-   *
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<ReadUserDataResponse>}
-   */
-  readUserData: (cardId, initialMessage) =>
-    RNTangemSdk.readUserData({ cardId, initialMessage }),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This command writes some UserData, and UserCounter fields.
-   * User_Data are never changed or parsed by the executable code the Tangem COS.
-   * The App defines purpose of use, format and it's payload. For example, this field may contain cashed information
-   * from blockchain to accelerate preparing new transaction.
-   * User_Counter are counter, that initial value can be set by App and increased on every signing
-   * of new transaction (on SIGN command that calculate new signatures). The App defines purpose of use.
-   * For example, this fields may contain blockchain nonce value.
-   * Writing of UserCounter and UserData is protected only by PIN1.
-   *
-   * @param {Data} userData Data defined by user’s App
-   * @param {number} userCounter: Counter initialized by user’s App and increased on every signing of new transaction.
-   *  If nil, the current counter value will not be overwritten.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns Promise<WriteUserDataResponse>
-   */
-  writeUserData: (userData, userCounter, cardId, initialMessage) =>
-    RNTangemSdk.writeUserData(
-      convertRequest({ userData, userCounter, cardId, initialMessage })
-    ),
-
-  /**
-   * @deprecated Use files instead
-   *
-   * This command writes some UserProtectedData and UserProtectedCounter fields.
-   * User_ProtectedData are never changed or parsed by the executable code the Tangem COS.
-   * The App defines purpose of use, format and it's payload. For example, this field may contain cashed information
-   * from blockchain to accelerate preparing new transaction.
-   * User_ProtectedCounter are counter, that initial value can be set by App and increased on every signing
-   * of new transaction (on SIGN command that calculate new signatures). The App defines purpose of use.
-   * For example, this fields may contain blockchain nonce value.
-   *
-   * UserProtectedCounter and UserProtectedData is protected by PIN1 and need additionally PIN2 to confirmation.
-   *
-   * @param {Data} userProtectedData Data defined by user’s App (confirmed by PIN2)
-   * @param {number} userProtectedCounter Counter initialized by user’s App (confirmed by PIN2) and increased on every signing of new transaction.
-   *  If nil, the current counter value will not be overwritten.
-   * @param {string} [cardId] Unique Tangem card ID number.
-   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
-   *
-   * @returns {Promise<WriteUserProtectedDataResponse>}
-   */
-  writeUserProtectedData: (
-    userProtectedData,
-    userProtectedCounter,
-    cardId,
-    initialMessage
-  ) =>
-    RNTangemSdk.writeUserData(
-      convertRequest({
-        userProtectedData,
-        userProtectedCounter,
-        cardId,
-        initialMessage,
-      })
-    ),
-
-  /**
    * This command will create a new wallet on the card having ‘Empty’ state.
    * A key pair WalletPublicKey / WalletPrivateKey is generated and securely stored in the card.
    * App will need to obtain Wallet_PublicKey from the response of `CreateWalletCommand` or `ReadCommand`
@@ -296,19 +140,13 @@ const tangemSdk: TangemSdk = {
    * WalletPrivateKey is never revealed by the card and will be used by `SignCommand` and `CheckWalletCommand`.
    * RemainingSignature is set to MaxSignatures.
    * @param {EllipticCurve} curve Wallet's elliptic curve
-   * @param {boolean} isPermanent: If this wallet can be deleted or not.
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
    * @returns {Promise<CreateWalletResponse>}
    */
-  createWallet: (curve, isPermanent, cardId, initialMessage) =>
-    execCommand(
-      'create_wallet',
-      { curve, isPermanent },
-      cardId,
-      initialMessage
-    ),
+  createWallet: (curve, cardId, initialMessage) =>
+    execCommand('create_wallet', { curve }, cardId, initialMessage),
 
   /**
    * This command deletes all wallet data. If Is_Reusable flag is enabled during personalization,
@@ -348,6 +186,14 @@ const tangemSdk: TangemSdk = {
     execCommand('set_passcode', { passcode }, cardId, initialMessage),
 
   /**
+   * Reset all user codes
+   * @param cardId
+   * @param initialMessage
+   */
+  resetUserCodes: (cardId, initialMessage) =>
+    execCommand('reset_usercodes', {}, cardId, initialMessage),
+
+  /**
    * This command reads all files stored on card.
    * By default command trying to read all files (including private), to change this behaviour - setup your ` ReadFileDataTaskSetting `
    * - Note: When performing reading private files command, you must provide `pin2`
@@ -358,7 +204,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<ReadFilesResponse>}
+   * @returns {Promise<SuccessResponse>}
    */
   readFiles: (readPrivateFiles, indices, cardId, initialMessage) =>
     execCommand(
@@ -381,7 +227,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<WriteFilesResponse>}
+   * @returns {Promise<SuccessResponse>}
    */
   writeFiles: (files, cardId, initialMessage) =>
     execCommand('write_files', { files }, cardId, initialMessage),
@@ -396,7 +242,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<DeleteFilesResponse>}
+   * @returns {Promise<SuccessResponse>}
    */
   deleteFiles: (indicesToDelete, cardId, initialMessage) =>
     execCommand('delete_files', { indicesToDelete }, cardId, initialMessage),
@@ -412,10 +258,13 @@ const tangemSdk: TangemSdk = {
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<ChangeFilesSettingsResponse>}
+   * @returns {Promise<SuccessResponse>}
    */
   changeFilesSettings: (changes, cardId, initialMessage) =>
     execCommand('change_file_settings', { changes }, cardId, initialMessage),
+
+  runJSONRPCRequest: (JSONRPCRequest, cardId, initialMessage) =>
+    execJsonRPCRequest(JSONRPCRequest, cardId, initialMessage),
 
   startSession: () => RNTangemSdk.startSession(),
   stopSession: () => RNTangemSdk.stopSession(),

@@ -78,7 +78,7 @@ export default class App extends Component<{}> {
     if (!card) {
       return Alert.alert('Scan the card first');
     }
-    TangemSdk.createWallet(EllipticCurve.Ed25519, false, card.cardId)
+    TangemSdk.createWallet(EllipticCurve.Ed25519, card.cardId)
       .then(this.onSuccess)
       .catch(this.onError);
   };
@@ -150,7 +150,13 @@ export default class App extends Component<{}> {
     }
     const initialMessage = { body: 'This is body', header: 'This is header' };
 
-    TangemSdk.sign(hashes, publicKey, card.cardId, undefined, initialMessage)
+    TangemSdk.signHashes(
+      hashes,
+      publicKey,
+      card.cardId,
+      undefined,
+      initialMessage
+    )
       .then(this.onSuccess)
       .catch(this.onError);
   };
@@ -191,8 +197,6 @@ export default class App extends Component<{}> {
     }
     TangemSdk.readFiles(true).then(this.onSuccess).catch(this.onError);
   };
-  changeSettingsFiles = () => {};
-  deleteFiles = () => {};
 
   render() {
     const { log, status } = this.state;
