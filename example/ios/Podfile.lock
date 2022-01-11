@@ -276,8 +276,8 @@ PODS:
     - React-perflogger (= 0.66.1)
   - tangem-sdk-react-native (1.0.0):
     - React-Core
-    - TangemSdk
-  - TangemSdk (3.0.2)
+    - TangemSdk (~> 3.2.1)
+  - TangemSdk (3.2.1)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -313,12 +313,12 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - tangem-sdk-react-native (from `../..`)
-  - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-50`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - fmt
+    - TangemSdk
 
 EXTERNAL SOURCES:
   boost:
@@ -381,24 +381,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   tangem-sdk-react-native:
     :path: "../.."
-  TangemSdk:
-    :git: https://github.com/Tangem/tangem-sdk-ios.git
-    :tag: develop-50
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
-CHECKOUT OPTIONS:
-  TangemSdk:
-    :git: https://github.com/Tangem/tangem-sdk-ios.git
-    :tag: develop-50
-
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
-  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
+  DoubleConversion: cde416483dac037923206447da6e1454df403714
   FBLazyVector: 500821d196c3d1bd10e7e828bc93ce075234080f
   FBReactNativeSpec: 74c869e2cffa2ffec685cd1bac6788c021da6005
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 5337263514dd6f09803962437687240c5dc39aa4
+  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
   RCTRequired: 3cc065b52aa18db729268b9bd78a2feffb4d0f91
   RCTTypeSafety: 3c4fc37d5dea452d2ef17324db5504ec2f05083a
@@ -423,10 +415,10 @@ SPEC CHECKSUMS:
   React-RCTVibration: 6600b5eed7c0fda4a433fa1198d1cb2690151791
   React-runtimeexecutor: 33a949a51bec5f8a3c9e8d8092deb259600d761e
   ReactCommon: 620442811dc6f707b4bf5e3b27d4f19c12d5a821
-  tangem-sdk-react-native: 4f7571644d3c9bbf125c98bc57ec5ff246c6ee6a
-  TangemSdk: 7a03e776285f3582e36fa9f6036ad5800c9ae9f1
+  tangem-sdk-react-native: dfb74b68830b45590ee47947ecbd88ac3bceaeff
+  TangemSdk: 24127483da68cffe64a4bd766893f11dedbdb430
   Yoga: 2b4a01651f42a32f82e6cef3830a3ba48088237f
 
-PODFILE CHECKSUM: 80f2db9784eeadbe5c887d40f445a4e87d51ecb6
+PODFILE CHECKSUM: bf0a1cc1c0a69436c759f1e22d4f99b28e6bcf32
 
 COCOAPODS: 1.11.2
