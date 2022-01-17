@@ -152,7 +152,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     fun signHashes(param: ReadableMap, promise: Promise) {
         try {
             sdk.sign(
-                    param.extract("hash") as Array<ByteArray>,
+                    param.extract("hashes") as Array<ByteArray>,
                     param.extract("walletPublicKey"),
                     param.extract("cardId"),
                     param.extractOptional("hdPath"),
