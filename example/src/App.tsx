@@ -8,7 +8,12 @@ import {
   View,
 } from 'react-native';
 
-import TangemSdk, { Card, EllipticCurve } from 'tangem-sdk-react-native';
+import TangemSdk, {
+  Card,
+  EllipticCurve,
+  FileVisibility,
+  OwnerFile,
+} from 'tangem-sdk-react-native';
 
 interface ExampleState {
   card?: Card;
@@ -63,7 +68,6 @@ export default class App extends Component<{}> {
     const initialMessage = { body: 'Hello!!!', header: 'Work now' };
     TangemSdk.scanCard(initialMessage)
       .then((card: Card) => {
-        console.log(card);
         this.setState({
           card,
         });
@@ -166,28 +170,29 @@ export default class App extends Component<{}> {
     if (!card) {
       return Alert.alert('Scan the card first');
     }
-    const files = [
-      { data: 'AABBCCDDEEFF' },
-      { data: '00000000' },
-      {
-        data: 'AABBCCDDEEFF',
-        startingSignature:
-          '5BAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        finalizingSignature:
-          '5AAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        counter: 1,
-      },
-      {
-        data: 'AABBCCDDEEFF',
-        startingSignature:
-          '5BAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        finalizingSignature:
-          '5AAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        counter: 2,
-      },
-    ];
-    TangemSdk.writeFiles(files, card.cardId)
-      .then(this.onSuccess)
+    const { cardId } = card;
+    const data = 'AABBCCDDEEFF';
+    const fileName = 'test';
+
+    // YOU MUST ENTER YOUR PRIVATE KEY
+    const privateKey =
+      '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
+    const fileCounter = 1;
+
+    TangemSdk.prepareHashes(cardId, data, fileCounter, fileName, privateKey)
+      .then(({ startingSignature, finalizingSignature }) => {
+        const file: OwnerFile = {
+          startingSignature,
+          finalizingSignature,
+          data,
+          fileName,
+          counter: fileCounter,
+          fileVisibility: FileVisibility.Public,
+        };
+        TangemSdk.writeFiles([file], cardId)
+          .then(this.onSuccess)
+          .catch(this.onError);
+      })
       .catch(this.onError);
   };
   readFiles = () => {
