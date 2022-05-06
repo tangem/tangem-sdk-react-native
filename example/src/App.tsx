@@ -166,26 +166,17 @@ export default class App extends Component<{}> {
     if (!card) {
       return Alert.alert('Scan the card first');
     }
-    const files = [
-      { data: 'AABBCCDDEEFF' },
-      { data: '00000000' },
-      {
-        data: 'AABBCCDDEEFF',
-        startingSignature:
-          '5BAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        finalizingSignature:
-          '5AAB8D9C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        counter: 1,
-      },
-      {
-        data: 'AABBCCDDEEFF',
-        startingSignature:
-          '5BAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        finalizingSignature:
-          '5AAB8D8C77D6B03E68D58B1AED44586BA1776231B9A44986B92D6E14FD8342885F72C644E45E6BF11B6F9649291A0DD5202B5C0B755BA49B479A5D38058B8641',
-        counter: 2,
-      },
-    ];
+
+    const { wallets } = card;
+    if (!wallets || !wallets.length) {
+      return Alert.alert('Can not find wallets');
+    }
+    const { publicKey } = wallets[0];
+    if (!publicKey) {
+      return Alert.alert('Can not find publicKey');
+    }
+
+    const files = [{ data: 'AABBCCDDEEFF' }, { data: '00000000' }];
     TangemSdk.writeFiles(files, card.cardId)
       .then(this.onSuccess)
       .catch(this.onError);

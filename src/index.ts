@@ -88,7 +88,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [hdPath] Derivation path of the wallet. Optional. COS v. 4.28 and higher
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<SignResponse>} response
+   * @returns {Promise<SignHashResponse>} response
    */
   signHash: (hash, walletPublicKey, cardId, hdPath, initialMessage) =>
     execCommand(
@@ -117,7 +117,7 @@ const tangemSdk: TangemSdk = {
    * @param {string} [hdPath] Derivation path of the wallet. Optional. COS v. 4.28 and higher
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<SignResponse>} response
+   * @returns {Promise<SignHashResponse>} response
    */
   signHashes: (hashes, walletPublicKey, cardId, hdPath, initialMessage) =>
     execCommand(
@@ -199,17 +199,24 @@ const tangemSdk: TangemSdk = {
    * - Note: When performing reading private files command, you must provide `pin2`
    * - Warning: Command available only for cards with COS 3.29 and higher
    *
-   * @param {boolean} readPrivateFiles If true - all files saved on card will be read otherwise
-   * @param {number[]} [indices] Indices of files that should be read from card. If not specifies all files will be read.
+   * @param {boolean} [readPrivateFiles] If true - all files saved on card will be read otherwise
+   * @param {string} [fileName] File name
+   * @param {Data} [walletPublicKey] Public key of wallet that should sign hashes.
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<SuccessResponse>}
+   * @returns {Promise<ReadFilesResponse>}
    */
-  readFiles: (readPrivateFiles, indices, cardId, initialMessage) =>
+  readFiles: (
+    readPrivateFiles,
+    fileName,
+    walletPublicKey,
+    cardId,
+    initialMessage
+  ) =>
     execCommand(
       'read_files',
-      { readPrivateFiles, indices },
+      { readPrivateFiles, fileName, walletPublicKey },
       cardId,
       initialMessage
     ),
@@ -217,17 +224,13 @@ const tangemSdk: TangemSdk = {
   /**
    * This command write all files provided in `files` to card.
    *
-   * There are 2 main implementation of `DataToWrite` protocol:
-   * - `FileDataProtectedBySignature` - for files signed by Issuer (specified on card during personalization)
-   * - `FileDataProtectedByPasscode` - write files protected by Pin2
-   *
    * Warning: This command available for COS 3.29 and higher
    * Note: Writing files protected by Pin2 only available for COS 3.34 and higher
-   * @param {File[]} files List of files that should be written to card
+   * @param {FileToWrite[]} files List of files that should be written to card
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
-   * @returns {Promise<SuccessResponse>}
+   * @returns {Promise<WriteFilesResponse>}
    */
   writeFiles: (files, cardId, initialMessage) =>
     execCommand('write_files', { files }, cardId, initialMessage),
@@ -238,14 +241,14 @@ const tangemSdk: TangemSdk = {
    * To perform file deletion you should initially read all files (`readFiles` command) and add them to `indices` array. When files deleted from card, other files change their indexes.
    * After deleting files you should additionally perform `readFiles` command to actualize files indexes
    * Warning: This command available for COS 3.29 and higher
-   * @param {number[]} [indicesToDelete] Indexes of files that should be deleted. If nil - deletes all files from card
+   * @param {number[]} [indices] Indexes of files that should be deleted. If nil - deletes all files from card
    * @param {string} [cardId] Unique Tangem card ID number.
    * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
    *
    * @returns {Promise<SuccessResponse>}
    */
-  deleteFiles: (indicesToDelete, cardId, initialMessage) =>
-    execCommand('delete_files', { indicesToDelete }, cardId, initialMessage),
+  deleteFiles: (indices, cardId, initialMessage) =>
+    execCommand('delete_files', { indices }, cardId, initialMessage),
 
   /**
    * Updates selected file settings provided within `File`.

@@ -29,9 +29,9 @@ export enum FirmwareType {
   Special = 'special',
 }
 
-export enum FileSettings {
-  Private,
-  Public,
+export enum FileVisibility {
+  Private = 'private',
+  Public = 'public',
 }
 
 export enum Status {
@@ -355,21 +355,52 @@ export interface SignHashesResponse {
   totalSignedHashes?: number;
 }
 
+export interface FileSettings {
+  isPermanent: boolean;
+  visibility: FileVisibility;
+}
+
 export interface FileSettingsChange {
-  fileIndex: number;
-  settings: FileSettings;
+  [index: number]: FileVisibility;
 }
 
 export interface File {
   data: Data;
-  startingSignature?: Data;
-  finalizingSignature?: Data;
-  counter?: number;
-  issuerPublicKey?: Data;
-  requiredPasscode?: boolean;
-  minFirmwareVersion?: FirmwareVersion;
-  maxFirmwareVersion?: FirmwareVersion;
+  index: number;
+  settings: FileSettings;
 }
+
+export interface UserFile {
+  /**
+   * Data to write
+   */
+  data: Data;
+  /**
+   * Optional visibility setting for the file
+   */
+  fileVisibility?: FileVisibility;
+  /**
+   * Optional link to the card's wallet.
+   */
+  walletPublicKey?: Data;
+}
+
+export interface OwnerFile extends UserFile {
+  /**
+   * Starting signature of the file data
+   */
+  startingSignature?: Data;
+  /**
+   * Finalizing signature of the file data
+   */
+  finalizingSignature?: Data;
+  /**
+   * File counter to prevent replay attack
+   */
+  counter?: number;
+}
+
+export type FileToWrite = OwnerFile | UserFile;
 
 export type ReadFilesResponse = {
   files: File[];
@@ -380,7 +411,7 @@ export interface WriteFilesResponse {
    * Unique Tangem card ID number.
    */
   cardId: string;
-  fileIndex?: number;
+  filesIndices: number[];
 }
 
 export interface TangemSdk {
@@ -432,20 +463,21 @@ export interface TangemSdk {
   ): Promise<SuccessResponse>;
 
   readFiles(
-    readPrivateFiles: boolean,
-    indices?: number[],
+    readPrivateFiles?: boolean,
+    fileName?: string,
+    walletPublicKey?: Data,
     cardId?: string,
     initialMessage?: Message
-  ): Promise<SuccessResponse>;
+  ): Promise<ReadFilesResponse>;
 
   writeFiles(
-    files: File[],
+    files: FileToWrite[],
     cardId?: string,
     initialMessage?: Message
-  ): Promise<SuccessResponse>;
+  ): Promise<WriteFilesResponse>;
 
   deleteFiles(
-    indicesToDelete?: number[],
+    indices?: number[],
     cardId?: string,
     initialMessage?: Message
   ): Promise<SuccessResponse>;

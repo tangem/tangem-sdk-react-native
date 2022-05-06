@@ -276,8 +276,8 @@ PODS:
     - React-perflogger (= 0.66.1)
   - tangem-sdk-react-native (1.0.0):
     - React-Core
-    - TangemSdk (~> 3.2.1)
-  - TangemSdk (3.2.1)
+    - TangemSdk (~> 3.3)
+  - TangemSdk (3.3.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -415,8 +415,8 @@ SPEC CHECKSUMS:
   React-RCTVibration: 6600b5eed7c0fda4a433fa1198d1cb2690151791
   React-runtimeexecutor: 33a949a51bec5f8a3c9e8d8092deb259600d761e
   ReactCommon: 620442811dc6f707b4bf5e3b27d4f19c12d5a821
-  tangem-sdk-react-native: dfb74b68830b45590ee47947ecbd88ac3bceaeff
-  TangemSdk: 24127483da68cffe64a4bd766893f11dedbdb430
+  tangem-sdk-react-native: 18e671af418b11f2a9cc67b2c42e8f8634847014
+  TangemSdk: ac74b567f0d2fc02fb006e8db71b5c92d0e2de8d
   Yoga: 2b4a01651f42a32f82e6cef3830a3ba48088237f
 
 PODFILE CHECKSUM: bf0a1cc1c0a69436c759f1e22d4f99b28e6bcf32

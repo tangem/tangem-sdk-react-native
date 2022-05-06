@@ -16,6 +16,7 @@
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* TangemSdkReactNativeExampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TangemSdkReactNativeExampleTests.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		E9E9AA0A2822BC8F00C0A12A /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = E9E9AA092822BC8F00C0A12A /* main.jsbundle */; };
 		E9EFC9C8266E8E8800B90F4F /* Pods_TangemSdkReactNativeExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AF1615E7BD8F54E9494D46E /* Pods_TangemSdkReactNativeExample.framework */; };
 /* End PBXBuildFile section */
 
@@ -53,6 +54,7 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = TangemSdkReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E00ACF0FDA8BF921659E2F9A /* Pods-TangemSdkReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TangemSdkReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-TangemSdkReactNativeExample/Pods-TangemSdkReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
 		E93A7A04265AD25100859FD4 /* TangemSdkReactNativeExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TangemSdkReactNativeExample.entitlements; path = TangemSdkReactNativeExample/TangemSdkReactNativeExample.entitlements; sourceTree = "<group>"; };
+		E9E9AA092822BC8F00C0A12A /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -110,6 +112,7 @@
 		13B07FAE1A68108700A75B9A /* TangemSdkReactNativeExample */ = {
 			isa = PBXGroup;
 			children = (
+				E9E9AA092822BC8F00C0A12A /* main.jsbundle */,
 				E93A7A04265AD25100859FD4 /* TangemSdkReactNativeExample.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -312,6 +315,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9E9AA0A2822BC8F00C0A12A /* main.jsbundle in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
@@ -589,7 +593,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tangem.sdk.react-native-new.example";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tangem.sdk.react-native.example";
 				PRODUCT_NAME = TangemSdkReactNativeExample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -615,7 +619,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tangem.sdk.react-native-new.example";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tangem.sdk.react-native.example";
 				PRODUCT_NAME = TangemSdkReactNativeExample;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;

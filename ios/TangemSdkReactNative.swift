@@ -23,6 +23,22 @@ class RNTangemSdk: NSObject {
             resolve(nil)
         }
     }
+    
+    @objc(prepareHashes:resolve:reject:) func prepareHashes(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let params = params
+        guard let cardId: String = params?.getArg(.cardId),
+            let fileData: Data = params?.getArg(.fileData),
+            let fileCounter: Int = params?.getArg(.fileCounter) else {
+                handleMissingArgs(reject)
+                return
+        }
+        sdk.prepareHashes(cardId: cardId,
+                          fileData: fileData,
+                          fileCounter: fileCounter,
+                          privateKey: params?.getArg(.privateKey)) {[weak self] result in
+                                    self?.handleResult(result, resolve, reject)
+        }
+    }
 
     @objc(readIssuerData:resolve:reject:) func readIssuerData(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         sdk.readIssuerData(cardId: params?.getArg(.cardId),
