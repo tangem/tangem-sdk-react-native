@@ -10,6 +10,18 @@ function getJsonRequest(method: SdkMethod = 'scan', params = {}) {
   return { jsonrpc: '2.0', id: '1', method, params };
 }
 
+function convertRequest(params: { [k: string]: any }): Object {
+  Object.keys(params).forEach(function (key) {
+    if (typeof params[key] === 'undefined') {
+      delete params[key];
+    }
+    if (typeof params[key] === 'object') {
+      params[key] = JSON.stringify(params[key]);
+    }
+  });
+  return params;
+}
+
 function execCommand(
   method: SdkMethod = 'scan',
   params = {},
@@ -265,6 +277,26 @@ const tangemSdk: TangemSdk = {
    */
   changeFilesSettings: (changes, cardId, initialMessage) =>
     execCommand('change_file_settings', { changes }, cardId, initialMessage),
+
+  /**
+   * @param {string} cardId Unique Tangem card ID number.
+   * @param {Data} fileData Data of file that will be saved on card
+   * @param {number} fileCounter A counter that protect issuer data against replay attack.
+   * @param {string} [fileName] File name
+   * @param {Data} [privateKey] Optional private key that will be used for signing files hashes. If provided - resulting `FileHashData` will have signed file signatures
+   *
+   * @returns {Promise<PrepareHashesResponse>}
+   */
+  prepareHashes: (cardId, fileData, fileCounter, fileName, privateKey) =>
+    RNTangemSdk.prepareHashes(
+      convertRequest({
+        cardId,
+        fileData,
+        fileCounter,
+        fileName,
+        privateKey,
+      })
+    ),
 
   runJSONRPCRequest: (JSONRPCRequest, cardId, initialMessage) =>
     execJsonRPCRequest(JSONRPCRequest, cardId, initialMessage),

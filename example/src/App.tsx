@@ -8,7 +8,11 @@ import {
   View,
 } from 'react-native';
 
-import TangemSdk, { Card, EllipticCurve } from 'tangem-sdk-react-native';
+import TangemSdk, {
+  Card,
+  EllipticCurve,
+  OwnerFile,
+} from 'tangem-sdk-react-native';
 
 interface ExampleState {
   card?: Card;
@@ -166,19 +170,29 @@ export default class App extends Component<{}> {
     if (!card) {
       return Alert.alert('Scan the card first');
     }
+    const { cardId } = card;
+    const data = 'AABBCCDDEEFF';
+    const fileName = 'test';
+    const privateKey =
+      '11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92';
 
-    const { wallets } = card;
-    if (!wallets || !wallets.length) {
-      return Alert.alert('Can not find wallets');
-    }
-    const { publicKey } = wallets[0];
-    if (!publicKey) {
-      return Alert.alert('Can not find publicKey');
-    }
-
-    const files = [{ data: 'AABBCCDDEEFF' }, { data: '00000000' }];
-    TangemSdk.writeFiles(files, card.cardId)
-      .then(this.onSuccess)
+    TangemSdk.prepareHashes(cardId, data, 1, fileName, privateKey)
+      .then((res) => {
+        console.log(res);
+        return res;
+      })
+      .then(({ startingSignature, finalizingSignature }) => {
+        const file: OwnerFile = {
+          startingSignature,
+          finalizingSignature,
+          data,
+          fileName,
+        };
+        console.log(file);
+        TangemSdk.writeFiles([file], cardId)
+          .then(this.onSuccess)
+          .catch(this.onError);
+      })
       .catch(this.onError);
   };
   readFiles = () => {

@@ -395,6 +395,10 @@ export interface OwnerFile extends UserFile {
    */
   finalizingSignature?: Data;
   /**
+   * File name
+   */
+  fileName?: string;
+  /**
    * File counter to prevent replay attack
    */
   counter?: number;
@@ -412,6 +416,13 @@ export interface WriteFilesResponse {
    */
   cardId: string;
   filesIndices: number[];
+}
+
+export interface PrepareHashesResponse {
+  startingHash: Data;
+  finalizingHash: Data;
+  startingSignature?: Data;
+  finalizingSignature?: Data;
 }
 
 export interface TangemSdk {
@@ -487,6 +498,14 @@ export interface TangemSdk {
     cardId?: String,
     initialMessage?: Message
   ): Promise<SuccessResponse>;
+
+  prepareHashes(
+    cardId: string,
+    fileData: Data,
+    fileCounter: number,
+    fileName?: string,
+    privateKey?: Data
+  ): Promise<PrepareHashesResponse>;
 
   runJSONRPCRequest(
     JSONRPCRequest: object,
