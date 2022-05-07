@@ -11,6 +11,7 @@ import {
 import TangemSdk, {
   Card,
   EllipticCurve,
+  FileVisibility,
   OwnerFile,
 } from 'tangem-sdk-react-native';
 
@@ -175,8 +176,9 @@ export default class App extends Component<{}> {
     const fileName = 'test';
     const privateKey =
       '11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92';
+    const fileCounter = 1;
 
-    TangemSdk.prepareHashes(cardId, data, 1, fileName, privateKey)
+    TangemSdk.prepareHashes(cardId, data, fileCounter, fileName, privateKey)
       .then((res) => {
         console.log(res);
         return res;
@@ -187,6 +189,8 @@ export default class App extends Component<{}> {
           finalizingSignature,
           data,
           fileName,
+          counter: fileCounter,
+          fileVisibility: FileVisibility.Public,
         };
         console.log(file);
         TangemSdk.writeFiles([file], cardId)
