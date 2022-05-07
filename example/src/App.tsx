@@ -68,7 +68,6 @@ export default class App extends Component<{}> {
     const initialMessage = { body: 'Hello!!!', header: 'Work now' };
     TangemSdk.scanCard(initialMessage)
       .then((card: Card) => {
-        console.log(card);
         this.setState({
           card,
         });
@@ -179,10 +178,6 @@ export default class App extends Component<{}> {
     const fileCounter = 1;
 
     TangemSdk.prepareHashes(cardId, data, fileCounter, fileName, privateKey)
-      .then((res) => {
-        console.log(res);
-        return res;
-      })
       .then(({ startingSignature, finalizingSignature }) => {
         const file: OwnerFile = {
           startingSignature,
@@ -192,7 +187,6 @@ export default class App extends Component<{}> {
           counter: fileCounter,
           fileVisibility: FileVisibility.Public,
         };
-        console.log(file);
         TangemSdk.writeFiles([file], cardId)
           .then(this.onSuccess)
           .catch(this.onError);
