@@ -173,8 +173,10 @@ export default class App extends Component<{}> {
     const { cardId } = card;
     const data = 'AABBCCDDEEFF';
     const fileName = 'test';
+
+    // YOU MUST ENTER YOUR PRIVATE KEY
     const privateKey =
-      '11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92';
+      '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
     const fileCounter = 1;
 
     TangemSdk.prepareHashes(cardId, data, fileCounter, fileName, privateKey)
