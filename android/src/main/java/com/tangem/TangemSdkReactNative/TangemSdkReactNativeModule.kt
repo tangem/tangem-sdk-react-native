@@ -16,8 +16,6 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.files.DataToWrite
-import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
@@ -53,7 +51,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         Log.addLogger(TangemSdk.createLogger())
 
         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
-        val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply { this.activity = activity }
+        val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
         val storage = SecureStorage.create(activity)
         sdk = TangemSdk(nfcManager.reader, delegate, storage, Config())
 
@@ -285,60 +283,19 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     @ReactMethod
-    fun readFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val readFiles: FileCommand.Read = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.readFiles(
-                    readFiles.readPrivateFiles,
-                    readFiles.indices,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun writeFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val writeFiles: FileCommand.Write = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.writeFiles(
-                    writeFiles.files,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun deleteFiles(param: ReadableMap, promise: Promise) {
-        try {
-            val deleteFiles: FileCommand.Delete = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.deleteFiles(
-                    deleteFiles.indices,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
-    }
-
-    @ReactMethod
-    fun changeFileSettings(param: ReadableMap, promise: Promise) {
-        try {
-            val changeSettings: FileCommand.ChangeSettings = converter.fromJson(converter.toJson(param.toHashMap()))!!
-            sdk.changeFileSettings(
-                    changeSettings.changes,
-                    param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
-            ) { handleResult(it, promise) }
-        } catch (ex: Exception) {
-            handleException(ex, promise)
-        }
+    fun prepareHashes(param: ReadableMap, promise: Promise) {
+      try {
+        val hashes =  sdk.prepareHashes(
+          param.extract("cardId"),
+          param.extract("fileData"),
+          param.extract("fileCounter"),
+          param.extractOptional("fileName"),
+          param.extractOptional("privateKey"),
+        );
+        promise.resolve(normalizeResponse(hashes))
+      } catch (ex: Exception) {
+        handleException(ex, promise)
+      }
     }
 
     @ReactMethod
@@ -507,12 +464,5 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         lateinit var wActivity: WeakReference<Activity?>
 
         val converter = MoshiJsonConverter.INSTANCE
-    }
-
-    sealed class FileCommand {
-        data class Read(val readPrivateFiles: Boolean = false, val indices: List<Int>? = null)
-        data class Write(val files: List<DataToWrite>)
-        data class Delete(val indices: List<Int>?)
-        data class ChangeSettings(val changes: List<FileSettingsChange>)
     }
 }

@@ -23,6 +23,31 @@ class RNTangemSdk: NSObject {
             resolve(nil)
         }
     }
+    
+    @objc(prepareHashes:resolve:reject:) func prepareHashes(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let params = params
+        guard let cardId: String = params?.getArg(.cardId),
+            let fileData: Data = params?.getArg(.fileData),
+            let fileCounter: Int = params?.getArg(.fileCounter) else {
+                handleMissingArgs(reject)
+                return
+        }
+        do {
+            let result = try sdk.prepareHashes(cardId: cardId, fileData: fileData, fileCounter: fileCounter, fileName: params?.getArg(.fileName), privateKey: params?.getArg(.privateKey))
+            let data = result.json.data(using: .utf8)
+            if data != nil {
+                let jsonObject = try? JSONSerialization.jsonObject(with: data!, options: [])
+                resolve(jsonObject)
+            } else {
+                resolve({})
+            }
+        }
+        catch {
+            let pluginError = error.toTangemSdkError().toPluginError()
+            reject("\(pluginError.code)", pluginError.localizedDescription, nil)
+        }
+        
+    }
 
     @objc(readIssuerData:resolve:reject:) func readIssuerData(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         sdk.readIssuerData(cardId: params?.getArg(.cardId),
@@ -212,6 +237,7 @@ fileprivate enum ArgKey: String {
     case initialMessage
     case fileData
     case fileCounter
+    case fileName
     case privateKey
     case readPrivateFiles
     case indices
@@ -221,7 +247,7 @@ fileprivate enum ArgKey: String {
 fileprivate extension Dictionary where Key == String, Value == Any {
     func getArg<T: Decodable>(_ key: ArgKey) -> T? {
         if let value = self[key.rawValue] {
-            if T.self == Data.self {
+            if T.self == Data.self || T.self == Data?.self {
                 if let hex = value as? String {
                     return Data(hexString: hex) as? T
                 } else {
