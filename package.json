@@ -1,7 +1,7 @@
 {
-  "name": "tangem-sdk-react-native",
+  "name": "tangem-sdk",
   "title": "React Native Tangem Sdk",
-  "version": "2.2.0",
+  "version": "0.7.0",
   "description": "React Native Tangem Sdk",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
