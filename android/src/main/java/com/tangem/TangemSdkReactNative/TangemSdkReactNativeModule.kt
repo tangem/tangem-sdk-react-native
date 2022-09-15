@@ -106,6 +106,25 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     }
 
     @ReactMethod
+    fun nfcStop() {
+        if (::nfcManager.isInitialized) {
+            nfcManager.onStop()
+            nfcManagerStarted = false
+        }
+    }
+
+    @ReactMethod
+    fun nfcStart() {
+        if (!::nfcManager.isInitialized) return
+        val activity = wActivity.get() ?: return
+
+        if (activity.isDestroyed() || activity.isFinishing()) {
+            initialize()
+        }
+        if (!nfcManagerStarted) nfcManager.onStart()
+    }
+
+    @ReactMethod
     fun createWallet(param: ReadableMap, promise: Promise) {
         try {
             sdk.createWallet(

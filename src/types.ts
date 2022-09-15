@@ -519,6 +519,10 @@ export interface TangemSdk {
 
   getNFCStatus(): Promise<NFCStatusResponse>;
 
+  nfcStop(): Promise<void>;
+
+  nfcStart(): Promise<void>;
+
   on(eventName: Events, handler: (state: EventCallback) => void): void;
 
   removeListener(
