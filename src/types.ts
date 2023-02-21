@@ -277,6 +277,10 @@ export interface Card {
    * This counter were deprecated for cards with COS 4.0 and higher
    */
   remainingSignatures?: number;
+  /**
+   * Available only for cards with COS v.4.0 and higher.
+   */
+  isAccessCodeSet?: boolean;
 }
 
 export type NFCStatusResponse = {
