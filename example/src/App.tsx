@@ -176,7 +176,7 @@ export default class App extends Component<{}> {
 
     // YOU MUST ENTER YOUR PRIVATE KEY
     const privateKey =
-      '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
+      '11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92';
     const fileCounter = 1;
 
     TangemSdk.prepareHashes(cardId, data, fileCounter, fileName, privateKey)
@@ -201,6 +201,10 @@ export default class App extends Component<{}> {
       return Alert.alert('Scan the card first');
     }
     TangemSdk.readFiles(true).then(this.onSuccess).catch(this.onError);
+  };
+
+  deleteFiles = () => {
+    TangemSdk.deleteFiles([1]).then(this.onSuccess).catch(this.onError);
   };
 
   render() {
@@ -229,6 +233,7 @@ export default class App extends Component<{}> {
           <View style={styles.row}>
             <Button onPress={this.writeFiles} title="write" />
             <Button onPress={this.readFiles} title="read" />
+            <Button onPress={this.deleteFiles} title="delete" />
           </View>
         </View>
 

@@ -25,7 +25,7 @@ function convertRequest(params: { [k: string]: any }): Object {
 function execCommand(
   method: SdkMethod = 'scan',
   params = {},
-  cardId?: String,
+  cardId?: string,
   initialMessage?: Message
 ): Promise<any> {
   return execJsonRPCRequest(
@@ -37,13 +37,15 @@ function execCommand(
 
 async function execJsonRPCRequest(
   jsonRequest = {},
-  cardId?: String,
-  initialMessage?: Message
+  cardId?: string,
+  initialMessage?: Message,
+  accessCode?: string
 ): Promise<any> {
   const request = {
     JSONRPCRequest: JSON.stringify(jsonRequest),
     cardId,
     initialMessage: JSON.stringify(initialMessage),
+    accessCode,
   };
   return new Promise(async (resolve, reject) => {
     try {
@@ -66,6 +68,7 @@ type SdkMethod =
   | 'sign_hashes'
   | 'create_wallet'
   | 'purge_wallet'
+  | 'import_wallet'
   | 'set_accesscode'
   | 'set_passcode'
   | 'reset_usercodes'
@@ -73,7 +76,9 @@ type SdkMethod =
   | 'change_file_settings'
   | 'delete_files'
   | 'read_files'
-  | 'write_files';
+  | 'write_files'
+  | 'set_usercode_recovery_allowed'
+  | 'attest_card_key';
 
 const tangemSdk: TangemSdk = {
   /**
@@ -174,6 +179,36 @@ const tangemSdk: TangemSdk = {
    */
   purgeWallet: (walletPublicKey, cardId, initialMessage) =>
     execCommand('purge_wallet', { walletPublicKey }, cardId, initialMessage),
+
+  /** This command will import an esisting wallet
+   *
+   * @param {EllipticCurve} curve Elliptic curve of the wallet. `Card.supportedCurves` contains all curves supported by the card
+   * @param {string} mnemonic BIP39 mnemonic to create wallet from. COS v.6.16+.
+   * @param {string} passphrase BIP39 passphrase to create wallet from. COS v.6.16+. Empty passphrase by default.
+   * @param {string} cardId Unique Tangem card ID number.
+   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
+   *
+   * @returns {Promise<SuccessResponse>}
+   */
+  importWalletMnemonic: (curve, mnemonic, passphrase, cardId, initialMessage) =>
+    execCommand(
+      'import_wallet',
+      { curve, mnemonic, passphrase },
+      cardId,
+      initialMessage
+    ),
+
+  /** This command will import an esisting wallet
+   *
+   * @param {EllipticCurve} curve Elliptic curve of the wallet. `Card.supportedCurves` contains all curves supported by the card
+   * @param {Data} seed BIP39 seed to create wallet from. COS v.6.16+.
+   * @param {string} cardId Unique Tangem card ID number.
+   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
+   *
+   * @returns {Promise<SuccessResponse>}
+   */
+  importWalletSeed: (curve, seed, cardId, initialMessage) =>
+    execCommand('import_wallet', { curve, seed }, cardId, initialMessage),
 
   /**
    * Set or change card's access code
@@ -298,8 +333,27 @@ const tangemSdk: TangemSdk = {
       })
     ),
 
-  runJSONRPCRequest: (JSONRPCRequest, cardId, initialMessage) =>
-    execJsonRPCRequest(JSONRPCRequest, cardId, initialMessage),
+  attestCardKey: (challenge, cardId, initialMessage) =>
+    execCommand('attest_card_key', { challenge }, cardId, initialMessage),
+
+  /**
+   * Set if card allowed to reset user code
+   * @param {boolean} isAllowed This card can reset user codes on tte other linked card or not
+   * @param {string} [cardId] Unique Tangem card ID number.
+   * @param {Message} [initialMessage] A custom description that shows at the beginning of the NFC session. If nil, default message will be used
+   *
+   * @returns {Promise<SuccessResponse>}
+   */
+  setUserCodeRecoveryAllowed: (isAllowed, cardId, initialMessage) =>
+    execCommand(
+      'set_usercode_recovery_allowed',
+      { isAllowed },
+      cardId,
+      initialMessage
+    ),
+
+  runJSONRPCRequest: (JSONRPCRequest, cardId, initialMessage, accessCode) =>
+    execJsonRPCRequest(JSONRPCRequest, cardId, initialMessage, accessCode),
 
   startSession: () => RNTangemSdk.startSession(),
   stopSession: () => RNTangemSdk.stopSession(),
@@ -307,7 +361,7 @@ const tangemSdk: TangemSdk = {
 
   /**
    * Listen for available events (Android)
-   * @param  {String} eventName Name of event NFCStateChange
+   * @param  {string} eventName Name of event NFCStateChange
    * @param  {Function} handler Event handler
    */
   on: (eventName, handler) => {
@@ -318,7 +372,7 @@ const tangemSdk: TangemSdk = {
 
   /**
    * Stop listening for event (Android)
-   * @param  {String} eventName Name of event NFCStateChange
+   * @param  {string} eventName Name of event NFCStateChange
    * @param  {Function} handler Event handler
    */
   removeListener: (eventName, handler) => {

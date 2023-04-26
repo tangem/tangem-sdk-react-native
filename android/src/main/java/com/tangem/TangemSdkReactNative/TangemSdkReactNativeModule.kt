@@ -90,6 +90,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
                     param.extract("JSONRPCRequest"),
                     param.extractOptional("cardId"),
                     param.extractOptional("initialMessage")
+                    param.extractOptional("accessCode")
             ) { handler.post { promise.resolve(normalizeResponse(it)) } }
         } catch (ex: Exception) {
             handleException(ex, promise)

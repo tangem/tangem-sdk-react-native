@@ -100,12 +100,12 @@ export interface Wallet {
   /**
    * Total number of signed hashes returned by the wallet since its creation
    */
-  totalSignedHashes?: Number;
+  totalSignedHashes?: number;
   /**
    * Remaining number of `Sign` operations before the wallet will stop signing any data.
    * - Note: This counter were deprecated for cards with COS 4.0 and higher
    */
-  remainingSignatures?: Number;
+  remainingSignatures?: number;
   /**
    * Index of the wallet in the card storage
    */
@@ -131,7 +131,7 @@ export interface Issuer {
   /**
    * Name of the issuer.
    */
-  name: String;
+  name: string;
   /**
    * Public key that is used by the card issuer to sign IssuerData field.
    */
@@ -277,6 +277,10 @@ export interface Card {
    * This counter were deprecated for cards with COS 4.0 and higher
    */
   remainingSignatures?: number;
+  /**
+   * Available only for cards with COS v.4.0 and higher.
+   */
+  isAccessCodeSet?: boolean;
 }
 
 export type NFCStatusResponse = {
@@ -425,6 +429,16 @@ export interface PrepareHashesResponse {
   finalizingSignature?: Data;
 }
 
+export interface AttestCardKeyResponse {
+  /**
+   * Unique Tangem card ID number.
+   */
+  cardId: string;
+  salt: Data;
+  cardSignature: Data;
+  challenge: Data;
+}
+
 export interface TangemSdk {
   scanCard(initialMessage?: Message): Promise<Card>;
 
@@ -456,14 +470,29 @@ export interface TangemSdk {
     initialMessage?: Message
   ): Promise<SuccessResponse>;
 
+  importWalletSeed(
+    curve: EllipticCurve,
+    seed: Data,
+    cardId: string,
+    initialMessage?: Message
+  ): Promise<CreateWalletResponse>;
+
+  importWalletMnemonic(
+    curve: EllipticCurve,
+    mnemonic: string,
+    passphrase: string,
+    cardId: string,
+    initialMessage?: Message
+  ): Promise<CreateWalletResponse>;
+
   setAccessCode(
-    accessCode: String,
+    accessCode: string,
     cardId: string,
     initialMessage?: Message
   ): Promise<SuccessResponse>;
 
   setPasscode(
-    passcode: String,
+    passcode: string,
     cardId: string,
     initialMessage?: Message
   ): Promise<SuccessResponse>;
@@ -495,7 +524,7 @@ export interface TangemSdk {
 
   changeFilesSettings(
     changes: FileSettingsChange,
-    cardId?: String,
+    cardId?: string,
     initialMessage?: Message
   ): Promise<SuccessResponse>;
 
@@ -507,10 +536,23 @@ export interface TangemSdk {
     privateKey?: Data
   ): Promise<PrepareHashesResponse>;
 
+  attestCardKey(
+    challenge: Data,
+    cardId?: string,
+    initialMessage?: Message
+  ): Promise<AttestCardKeyResponse>;
+
+  setUserCodeRecoveryAllowed(
+    isAllowed: boolean,
+    cardId: string,
+    initialMessage?: Message
+  ): Promise<SuccessResponse>;
+
   runJSONRPCRequest(
     JSONRPCRequest: object,
     cardId?: string,
-    initialMessage?: Message
+    initialMessage?: Message,
+    accessCode?: string
   ): Promise<any>;
 
   startSession(): Promise<void>;
