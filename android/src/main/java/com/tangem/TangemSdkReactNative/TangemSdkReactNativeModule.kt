@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.os.Handler
 import android.os.Looper
+import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.tangem.Log
@@ -17,12 +18,10 @@ import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.json.MoshiJsonConverter
-import com.tangem.common.services.secure.SecureStorage
-import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
-import com.tangem.tangem_sdk_new.extensions.createLogger
-import com.tangem.tangem_sdk_new.extensions.localizedDescription
-import com.tangem.tangem_sdk_new.nfc.NfcManager
-import com.tangem.tangem_sdk_new.storage.create
+import com.tangem.sdk.DefaultSessionViewDelegate
+import com.tangem.sdk.extensions.*
+import com.tangem.sdk.nfc.NfcManager
+import com.tangem.sdk.storage.create
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -44,16 +43,14 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
     override fun initialize() {
         super.initialize()
 
-        val activity = currentActivity ?: return
+        val activity = currentActivity?.let { it as? FragmentActivity ?: error("required FragmentActivity") } ?: return
 
         wActivity = WeakReference(activity)
 
         Log.addLogger(TangemSdk.createLogger())
 
         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
-        val delegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
-        val storage = SecureStorage.create(activity)
-        sdk = TangemSdk(nfcManager.reader, delegate, storage, Config())
+        sdk =  TangemSdk.initWithBiometrics(activity, Config())
 
         nfcManager.onStart()
         nfcManagerStarted = true
@@ -89,7 +86,7 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
             sdk.startSessionWithJsonRequest(
                     param.extract("JSONRPCRequest"),
                     param.extractOptional("cardId"),
-                    param.extractOptional("initialMessage")
+                    param.extractOptional("initialMessage"),
                     param.extractOptional("accessCode")
             ) { handler.post { promise.resolve(normalizeResponse(it)) } }
         } catch (ex: Exception) {

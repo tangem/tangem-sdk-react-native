@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '13.0'
 
   s.dependency 'React-Core'
-  s.dependency 'TangemSdk', '3.4.0'
+  s.dependency 'TangemSdk', '3.5.0'
 end
