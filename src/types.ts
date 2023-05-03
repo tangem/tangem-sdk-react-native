@@ -5,6 +5,9 @@ export enum EllipticCurve {
   Secp256k1 = 'secp256k1',
   Ed25519 = 'ed25519',
   Secp256r1 = 'secp256r1',
+  Bls12381_G2 = 'bls12381_G2',
+  Bls12381_G2_AUG = 'bls12381_G2_AUG',
+  Bls12381_G2_POP = 'bls12381_G2_POP',
 }
 
 export enum SigningMethod {
@@ -55,6 +58,12 @@ export enum LinkedTerminalStatus {
    * No app/device is linked
    */
   None = 'none',
+}
+
+export enum BackupRawStatus {
+  NoBackup = 'noBackup',
+  CardLinked = 'cardLinked',
+  Active = 'active',
 }
 
 type Data = string;
@@ -110,6 +119,22 @@ export interface Wallet {
    * Index of the wallet in the card storage
    */
   index: Number;
+  /**
+   * Proof for BLS Proof of possession scheme (POP)
+   */
+  proof?: Data;
+  /**
+   * Has this key been imported to a card. E.g. from seed phrase
+   */
+  isImported?: boolean;
+  /**
+   * Does this wallet has a backup
+   */
+  hasBackup?: boolean;
+  /**
+   * Derived keys according to `Config.defaultDerivationPaths`
+   */
+  derivedKeys?: { [path: DerivationPath]: ExtendedPublicKey };
 }
 
 export interface Manufacturer {
@@ -193,6 +218,18 @@ export interface Settings {
   isSelectBlockchainAllowed: boolean;
 }
 
+export interface UserSettings {
+  /**
+   * Is allowed to recover user codes
+   */
+  isUserCodeRecoveryAllowed: boolean;
+}
+
+export interface BackupStatus {
+  status: BackupRawStatus;
+  cardsCount?: number;
+}
+
 export interface Attestation {
   /**
    * Attestation status of card's public key
@@ -210,6 +247,14 @@ export interface Attestation {
    * Attestation status of card's uniqueness. Not implemented for this time
    */
   cardUniquenessAttestation: Status;
+}
+
+export interface ExtendedPublicKey {
+  publicKey: Data;
+  chainCode: Data;
+  depth: number;
+  parentFingerprint: Data;
+  childNumber: bigint;
 }
 
 export interface Card {
@@ -243,12 +288,20 @@ export interface Card {
    */
   settings: Settings;
   /**
+   * Card settings, that were set during the personalization process and can be changed by user directly
+   */
+  userSettings: UserSettings;
+  /**
    * When this value is `current`, it means that the application is linked to the card,
    * and COS will not enforce security delay if `SignCommand` will be called
    * with `TlvTag.TerminalTransactionSignature` parameter containing a correct signature of raw data
    * to be signed made with `TlvTag.TerminalPublicKey`.
    */
   linkedTerminalStatus: LinkedTerminalStatus;
+  /**
+   * Available only for cards with COS v.4.0 and higher.
+   */
+  isAccessCodeSet?: boolean;
   /**
    * PIN2 (aka Passcode) is set.
    * Available only for cards with COS v.4.0 and higher.
@@ -258,6 +311,10 @@ export interface Card {
    * Array of ellipctic curves, supported by this card. Only wallets with these curves can be created.
    */
   supportedCurves: [EllipticCurve];
+  /**
+   * Status of card's backup
+   */
+  backupStatus?: BackupStatus;
   /**
    * Wallets, created on the card, that can be used for signature
    */
@@ -277,10 +334,6 @@ export interface Card {
    * This counter were deprecated for cards with COS 4.0 and higher
    */
   remainingSignatures?: number;
-  /**
-   * Available only for cards with COS v.4.0 and higher.
-   */
-  isAccessCodeSet?: boolean;
 }
 
 export type NFCStatusResponse = {
