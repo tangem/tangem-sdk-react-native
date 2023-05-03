@@ -14,7 +14,7 @@
     "android",
     "ios",
     "cpp",
-    "tangem-sdk-react-native.podspec",
+    "tangem-sdk.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!ios/build",
