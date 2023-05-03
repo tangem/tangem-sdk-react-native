@@ -50,7 +50,10 @@ class TangemSdkReactNativeModule(private val reactContext: ReactApplicationConte
         Log.addLogger(TangemSdk.createLogger())
 
         nfcManager = NfcManager().apply { setCurrentActivity(activity) }
-        sdk =  TangemSdk.initWithBiometrics(activity, Config())
+
+        Handler(Looper.getMainLooper()).post {
+          sdk =  TangemSdk.initWithBiometrics(activity, Config())
+        }
 
         nfcManager.onStart()
         nfcManagerStarted = true
