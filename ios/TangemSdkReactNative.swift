@@ -23,7 +23,7 @@ class RNTangemSdk: NSObject {
             resolve(nil)
         }
     }
-    
+
     @objc(prepareHashes:resolve:reject:) func prepareHashes(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         let params = params
         guard let cardId: String = params?.getArg(.cardId),
@@ -46,7 +46,7 @@ class RNTangemSdk: NSObject {
             let pluginError = error.toTangemSdkError().toPluginError()
             reject("\(pluginError.code)", pluginError.localizedDescription, nil)
         }
-        
+
     }
 
     @objc(readIssuerData:resolve:reject:) func readIssuerData(_ params: Dictionary<String, Any>? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
@@ -167,10 +167,12 @@ class RNTangemSdk: NSObject {
         }
         let cardId: String? = getArg(for: .cardId, from: args)
         let initialMessage: String? = getArg(for: .initialMessage, from: args)
+        let accessCode: String? = getArg(for: .accessCode, from: args)
 
         sdk.startSession(with: request,
                          cardId: cardId,
-                         initialMessage: initialMessage) { result in
+                         initialMessage: initialMessage,
+                         accessCode: accessCode) { result in
             resolve(result)
         }
     }
@@ -242,6 +244,7 @@ fileprivate enum ArgKey: String {
     case readPrivateFiles
     case indices
     case JSONRPCRequest
+    case accessCode
 }
 
 fileprivate extension Dictionary where Key == String, Value == Any {

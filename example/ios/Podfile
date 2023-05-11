@@ -8,7 +8,7 @@ target 'TangemSdkReactNativeExample' do
 
   use_react_native!(:path => config["reactNativePath"])
 
-  pod 'tangem-sdk-react-native', :path => '../..'
+  pod 'tangem-sdk', :path => '../..'
 
  use_frameworks!
  inhibit_all_warnings!
