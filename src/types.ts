@@ -100,16 +100,16 @@ export interface Wallet {
   /**
    * Total number of signed hashes returned by the wallet since its creation
    */
-  totalSignedHashes?: Number;
+  totalSignedHashes?: number;
   /**
    * Remaining number of `Sign` operations before the wallet will stop signing any data.
    * - Note: This counter were deprecated for cards with COS 4.0 and higher
    */
-  remainingSignatures?: Number;
+  remainingSignatures?: number;
   /**
    * Index of the wallet in the card storage
    */
-  index: Number;
+  index: number;
 }
 
 export interface Manufacturer {
@@ -368,6 +368,7 @@ export interface File {
   data: Data;
   index: number;
   settings: FileSettings;
+  name: string;
 }
 
 export interface UserFile {
@@ -406,9 +407,7 @@ export interface OwnerFile extends UserFile {
 
 export type FileToWrite = OwnerFile | UserFile;
 
-export type ReadFilesResponse = {
-  files: File[];
-};
+export type ReadFilesResponse = File[];
 
 export interface WriteFilesResponse {
   /**
@@ -442,7 +441,7 @@ export interface TangemSdk {
     cardId: string,
     hdPath?: DerivationPath,
     initialMessage?: Message
-  ): Promise<[SignHashesResponse]>;
+  ): Promise<SignHashesResponse>;
 
   createWallet(
     curve: EllipticCurve,
