@@ -304,6 +304,8 @@ const tangemSdk: TangemSdk = {
   startSession: () => RNTangemSdk.startSession(),
   stopSession: () => RNTangemSdk.stopSession(),
   getNFCStatus: () => RNTangemSdk.getNFCStatus(),
+  nfcStop: () => RNTangemSdk.nfcStop(),
+  nfcStart: () => RNTangemSdk.nfcStart(),
 
   /**
    * Listen for available events (Android)
