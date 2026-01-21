@@ -26,6 +26,8 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>Some reason</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to save access codes in the app</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

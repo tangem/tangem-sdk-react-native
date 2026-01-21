@@ -274,10 +274,10 @@ PODS:
     - React-jsi (= 0.66.1)
     - React-logger (= 0.66.1)
     - React-perflogger (= 0.66.1)
-  - tangem-sdk-react-native (1.0.0):
+  - tangem-sdk (0.7.0):
     - React-Core
-    - TangemSdk (= 3.3.4)
-  - TangemSdk (3.3.4)
+    - TangemSdk (= 3.6.0)
+  - TangemSdk (3.6.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -312,7 +312,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - tangem-sdk-react-native (from `../..`)
+  - tangem-sdk (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -379,7 +379,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  tangem-sdk-react-native:
+  tangem-sdk:
     :path: "../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
@@ -415,10 +415,10 @@ SPEC CHECKSUMS:
   React-RCTVibration: 6600b5eed7c0fda4a433fa1198d1cb2690151791
   React-runtimeexecutor: 33a949a51bec5f8a3c9e8d8092deb259600d761e
   ReactCommon: 620442811dc6f707b4bf5e3b27d4f19c12d5a821
-  tangem-sdk-react-native: 10f3e750fe3ab6550f65d42a5a282710a4ad8781
-  TangemSdk: 9ea2c230bd616787bdccc5fb3ab36925d06199d4
+  tangem-sdk: 1355eb5b04d0a04e06e38a11f498f76325bde446
+  TangemSdk: 9e5fcf315b5bc63b6a0651759fb3451f2a25f9f3
   Yoga: 2b4a01651f42a32f82e6cef3830a3ba48088237f
 
-PODFILE CHECKSUM: bf0a1cc1c0a69436c759f1e22d4f99b28e6bcf32
+PODFILE CHECKSUM: 8ce40a1dba0afaf55f61cb1ec917fbef2ae9ff8d
 
 COCOAPODS: 1.11.2

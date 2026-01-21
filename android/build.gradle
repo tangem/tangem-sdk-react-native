@@ -133,8 +133,8 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  implementation 'com.github.tangem.tangem-sdk-android:android:3.6.2'
-  implementation 'com.github.tangem.tangem-sdk-android:core:3.6.2'
+  implementation 'com.github.tangem.tangem-sdk-android:android:3.8.1'
+  implementation 'com.github.tangem.tangem-sdk-android:core:3.8.1'
 
   implementation 'com.squareup.moshi:moshi:1.12.0'
   implementation "com.squareup.moshi:moshi-kotlin:1.12.0"

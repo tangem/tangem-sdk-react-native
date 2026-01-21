@@ -3,7 +3,7 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "tangem-sdk-react-native"
+  s.name         = "tangem-sdk"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]
@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '13.0'
 
   s.dependency 'React-Core'
-  s.dependency 'TangemSdk', '3.3.4'
+  s.dependency 'TangemSdk', '3.6.0'
 end
